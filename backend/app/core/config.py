@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = []
 
     class Config:
-        env_file = ".env"
+        env_file = "backend/.env"
         case_sensitive = False
 
 
