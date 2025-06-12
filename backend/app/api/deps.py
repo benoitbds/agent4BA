@@ -33,6 +33,15 @@ def get_current_user(
         raise credentials_exception
 
     try:
+        user_id = int(token_data.sub)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    try:
         user_id = int(user_id)
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid ID in token")
