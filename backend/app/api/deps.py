@@ -31,7 +31,13 @@ def get_current_user(
             raise credentials_exception
     except Exception:
         raise credentials_exception
-    user = db.exec(select(User).where(User.id == user_id)).first()
-    if user is None:
-        raise credentials_exception
+
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid ID in token")
+
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
     return user
