@@ -20,33 +20,18 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
+        status_code=401,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
         payload = decode_access_token(token)
-        user_id: int | None = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
+        user_id = int(payload.get("sub"))
     except Exception:
         raise credentials_exception
 
-    try:
-        user_id = int(token_data.sub)
-    except (TypeError, ValueError):
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-
-    user = session.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        raise HTTPException(status_code=401, detail="Invalid ID in token")
-
     user = db.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise credentials_exception
+
     return user
