@@ -1,4 +1,5 @@
 import type { Project } from '../store/projects'
+import { useNavigate } from 'react-router-dom'
 
 interface Props {
   project: Project
@@ -9,8 +10,12 @@ interface Props {
 }
 
 export default function ProjectCard({ project, onGenerate, loading, onEdit, onDelete }: Props) {
+  const navigate = useNavigate()
   return (
-    <div className="rounded-xl shadow p-4 flex justify-between">
+    <div
+      className="rounded-xl shadow p-4 flex justify-between cursor-pointer"
+      onClick={() => navigate(`/projects/${project.id}`)}
+    >
       <div>
         <h3 className="font-semibold">{project.name}</h3>
         {project.description && <p className="text-sm text-gray-600">{project.description}</p>}
