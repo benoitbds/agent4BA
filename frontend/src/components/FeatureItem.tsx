@@ -1,6 +1,6 @@
 // frontend/src/components/FeatureItem.tsx
 import React from 'react';
-import { Feature as FeatureType } from '../types/specs'; // Adjust path if needed
+import type { Feature as FeatureType } from '../types/specs'; // Adjust path if needed
 import UserStoryListItem from './UserStoryListItem';
 
 interface FeatureItemProps {
