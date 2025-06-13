@@ -1,5 +1,5 @@
 import LoginForm from './components/LoginForm'
-import SpecGenerator from './components/SpecGenerator'
+import ProjectsManager from './components/ProjectsManager'
 import { useAuthStore } from './store/auth'
 import './App.css'
 
@@ -10,7 +10,7 @@ function App() {
       <button onClick={logout} className="self-end text-sm underline">
         Déconnexion
       </button>
-      <SpecGenerator />
+      <ProjectsManager />
     </div>
   ) : (
     <LoginForm />
