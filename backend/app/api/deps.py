@@ -19,7 +19,6 @@ def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
-    print(f"Token received in get_current_user: {token}")
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
@@ -27,7 +26,6 @@ def get_current_user(
     )
     try:
         payload = decode_access_token(token)
-        print(f"Decoded payload: {payload}")
         user_id = int(payload.get("sub"))
     except Exception as e:
         print(f"Exception during token decoding: {e}")
