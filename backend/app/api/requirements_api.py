@@ -4,12 +4,15 @@ from sqlmodel import Session, select
 from app.api.deps import get_db, get_current_user
 from app.models.requirements import Requirement, Epic, Feature, UserStory, UseCase # Import the models
 from app.models.user import User # To use current_user
+from app.models.project import Project # For checking project existence
+import datetime # For timestamp in requirement title
 from app.schemas.requirements import ( # Import schemas
     RequirementCreate, RequirementRead, RequirementUpdate,
     EpicCreate, EpicRead, EpicUpdate,
     FeatureCreate, FeatureRead, FeatureUpdate,
     UserStoryCreate, UserStoryRead, UserStoryUpdate,
-    UseCaseCreate, UseCaseRead, UseCaseUpdate
+    UseCaseCreate, UseCaseRead, UseCaseUpdate,
+    AISpecImportRequest # New schema
 )
 
 router = APIRouter(prefix="/requirements", tags=["Requirements Management"])
@@ -396,3 +399,92 @@ def delete_use_case(
     db.delete(use_case)
     db.commit()
     return {"ok": True, "detail": "UseCase deleted successfully"}
+
+
+@router.post("/projects/{project_id}/import-specifications", status_code=201)
+def import_ai_specifications( # Removed async as SQLModel DB operations are typically sync
+    *,
+    project_id: int,
+    specs_in: AISpecImportRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if project.owner_id != current_user.id: # Assuming User model has id attribute
+        raise HTTPException(status_code=403, detail="User does not have access to this project")
+
+    created_counts = {"requirements": 0, "epics": 0, "features": 0, "user_stories": 0}
+
+    try:
+        # Create parent Requirement
+        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        parent_req_title = f"{specs_in.requirement_title} - {timestamp}"
+
+        db_requirement = Requirement.from_orm(RequirementCreate(
+            title=parent_req_title,
+            description=specs_in.requirement_description,
+            project_id=project_id,
+            is_active=True
+        ))
+        db.add(db_requirement)
+        # We need to flush to get db_requirement.id without a full commit yet
+        db.flush()
+        db.refresh(db_requirement) # Ensure ID is populated
+        created_counts["requirements"] += 1
+
+        for epic_data in specs_in.epics:
+            db_epic = Epic.from_orm(EpicCreate(
+                title=epic_data.title,
+                description=epic_data.description,
+                project_id=project_id,
+                parent_req_id=db_requirement.id,
+                is_active=True
+            ))
+            db.add(db_epic)
+            db.flush()
+            db.refresh(db_epic)
+            created_counts["epics"] += 1
+
+            for feature_data in epic_data.features:
+                db_feature = Feature.from_orm(FeatureCreate(
+                    title=feature_data.title,
+                    description=feature_data.description,
+                    project_id=project_id,
+                    parent_epic_id=db_epic.id,
+                    is_active=True
+                ))
+                db.add(db_feature)
+                db.flush()
+                db.refresh(db_feature)
+                created_counts["features"] += 1
+
+                for story_text in feature_data.user_stories:
+                    # Ensure title is not overly long if there's a DB constraint.
+                    # Max length for UserStory.title is not defined in model but good practice.
+                    # Let's assume a reasonable length like 255 for title.
+                    story_title = story_text[:255] if len(story_text) > 255 else story_text
+
+                    db_user_story = UserStory.from_orm(UserStoryCreate(
+                        title=story_title,
+                        description=story_text, # Store full text in description
+                        project_id=project_id,
+                        parent_feature_id=db_feature.id,
+                        is_active=True
+                    ))
+                    db.add(db_user_story)
+                    created_counts["user_stories"] += 1
+
+        db.commit() # Single commit for the entire transaction
+
+        return {
+            "message": "Specifications imported successfully",
+            "created_counts": created_counts,
+            "parent_requirement_id": db_requirement.id
+        }
+    except Exception as e:
+        db.rollback() # Rollback the transaction in case of any error
+        print(f"Error during specification import, transaction rolled back: {e}") # Replace with proper logging
+        # Consider logging the traceback for e
+        raise HTTPException(status_code=500, detail=f"An error occurred during specification import: {str(e)}")

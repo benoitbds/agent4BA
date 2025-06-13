@@ -92,6 +92,7 @@ async def chat(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+
     project = db.get(Project, project_id)
     if not project or project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Project not found or not authorized")
@@ -179,6 +180,7 @@ async def chat(
     return {"reply": ai_text_reply, "created_item": created_item_info}
 
 
+
 @router.post("/projects/{project_id}/generate")
 async def generate_specs(project_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     project = db.get(Project, project_id)
@@ -191,6 +193,7 @@ async def generate_specs(project_id: int, db: Session = Depends(get_db), current
 
 @router.post("/projects/{project_id}/validate")
 async def validate_project(project_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+
     project = db.get(Project, project_id)
     if not project or project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Project not found or not authorized")
@@ -201,6 +204,7 @@ async def validate_project(project_id: int, db: Session = Depends(get_db), curre
 @router.get("/ai-activity/sessions", response_model=list[Activity])
 async def get_ai_activity(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     # Consider filtering by project_id or current_user.id for non-admin users
+
     statement = select(Activity).order_by(Activity.timestamp.desc()).limit(10)
     activities = db.exec(statement).all()
     return activities
