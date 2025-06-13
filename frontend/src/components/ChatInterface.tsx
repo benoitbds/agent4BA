@@ -1,11 +1,21 @@
 import React, { useState, FormEvent } from 'react';
+
 import fetchWithAuth from '../lib/fetchWithAuth'; // Assuming this handles auth tokens
+
+interface CreatedItem {
+  type: string;
+  data: {
+    id?: number;
+    title?: string;
+    [key: string]: unknown;
+  };
+}
 
 interface Message {
   id: string; // Unique ID for each message
   text: string;
   sender: 'user' | 'ai';
-  createdItem?: any; // To store info about item created by AI
+  createdItem?: CreatedItem; // To store info about item created by AI
 }
 
 interface ChatInterfaceProps {
