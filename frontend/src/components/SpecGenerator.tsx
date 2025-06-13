@@ -2,14 +2,20 @@ import { useState } from 'react'
 import fetchWithAuth from '../lib/fetchWithAuth'
 import { useAuthStore } from '../store/auth'
 
-export default function SpecGenerator() {
+interface Props {
+  projectId: number
+}
+export default function SpecGenerator({ projectId }: Props) {
   const token = useAuthStore((s) => s.token)
   const [specs, setSpecs] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
 
   const generate = async () => {
     setLoading(true)
-    const res = await fetchWithAuth(`${import.meta.env.VITE_API_BASE}/projects/1/generate`, { method: 'POST' })
+    const res = await fetchWithAuth(
+      `${import.meta.env.VITE_API_BASE}/projects/${projectId}/generate`,
+      { method: 'POST' }
+    )
     if (res.ok) {
       const data = await res.json()
       setSpecs(data.specs)
