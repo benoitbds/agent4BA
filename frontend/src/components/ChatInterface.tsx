@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import type { FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
+
 import fetchWithAuth from '../lib/fetchWithAuth'; // Assuming this handles auth tokens
 
 interface CreatedItem {
