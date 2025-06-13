@@ -5,3 +5,5 @@ python-jose[cryptography]
 passlib[bcrypt]
 pydantic-settings
 uvicorn[standard]
+
+openai~=1.7.0
