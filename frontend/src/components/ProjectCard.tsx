@@ -1,4 +1,4 @@
-import { Project } from '../store/projects'
+import type { Project } from '../store/projects'
 
 interface Props {
   project: Project

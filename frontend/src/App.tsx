@@ -6,7 +6,8 @@ import ProjectCard from './components/ProjectCard'
 import SpecHistory from './components/SpecHistory'
 import fetchWithAuth from './lib/fetchWithAuth'
 import { useAuthStore } from './store/auth'
-import { Project, useProjectsStore } from './store/projects'
+import type { Project } from './store/projects'
+import { useProjectsStore } from './store/projects'
 import './index.css'
 
 function App() {
