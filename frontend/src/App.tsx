@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import LoginForm from './components/LoginForm'
 import { useAuthStore } from './store/auth'
@@ -9,18 +9,23 @@ import './index.css'
 function App() {
   const { token, logout } = useAuthStore()
 
-  if (!token) return <LoginForm />
-
   return (
-    <Layout>
-      <button onClick={logout} className="self-end text-sm underline">
-        Déconnexion
-      </button>
-      <Routes>
-        <Route path="/projects" element={<ProjectListPage />} />
-        <Route path="/projects/:id" element={<ProjectDetailPage />} />
-      </Routes>
-    </Layout>
+    <BrowserRouter>
+      {token ? (
+        <Layout>
+          <button onClick={logout} className="self-end text-sm underline">
+            Déconnexion
+          </button>
+          <Routes>
+            <Route path="/projects" element={<ProjectListPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="*" element={<Navigate to="/projects" />} />
+          </Routes>
+        </Layout>
+      ) : (
+        <LoginForm />
+      )}
+    </BrowserRouter>
   )
 }
 
