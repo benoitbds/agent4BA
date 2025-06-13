@@ -12,4 +12,5 @@ def get_session():
 
 
 def init_db() -> None:
+    import app.models.requirements  # noqa: F401
     SQLModel.metadata.create_all(engine)
