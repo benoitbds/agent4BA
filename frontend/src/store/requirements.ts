@@ -88,7 +88,11 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
       url = `${import.meta.env.VITE_API_BASE}/projects/${projectId}/requirements/${req.id}/epics/${epic.id}/features/${id}`
     }
     if (url) {
-      const res = await updateRequest(url, data)
+      const payload = {
+        title: data.title,
+        description: data.description ?? undefined,
+      }
+      const res = await updateRequest(url, payload)
       if (res.ok) {
         await get().fetchTree(projectId)
       }
