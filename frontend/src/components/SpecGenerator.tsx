@@ -70,7 +70,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
         const errorData = await res.json().catch(() => ({ detail: 'Erreur lors de la génération' }));
         setError(errorData.detail || 'Erreur lors de la génération');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError('Une erreur réseau est survenue.');
       console.error("Network or other error in generate:", e);
     } finally {
@@ -119,7 +119,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
         const errorData = await res.json().catch(() => ({ detail: 'Erreur lors de la sauvegarde' }));
         setSaveError(errorData.detail || 'Erreur lors de la sauvegarde des spécifications.');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setSaveError('Une erreur réseau est survenue lors de la sauvegarde.');
       console.error("Network or other error in save:", e);
     } finally {
