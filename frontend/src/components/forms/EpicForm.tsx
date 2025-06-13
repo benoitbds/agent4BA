@@ -4,7 +4,7 @@ import type { RequirementNode } from '../../store/requirements'
 
 interface Props {
   node?: RequirementNode
-  parentId?: number
+  parentId?: number | null
 }
 
 export default function EpicForm({ node, parentId }: Props) {
@@ -15,7 +15,7 @@ export default function EpicForm({ node, parentId }: Props) {
     if (node) {
       await update(node.id, values)
     } else {
-      await add(parentId, { level: 'epic', ...values })
+      await add(parentId ?? null, { level: 'epic', ...values })
     }
   }
 
