@@ -183,12 +183,16 @@ async def chat(
 
 @router.post("/projects/{project_id}/generate")
 async def generate_specs(project_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    """Return generated specifications as Markdown.
+
+    The response body is ``{"markdown": str}``.
+    """
     project = db.get(Project, project_id)
     if not project or project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Project not found or not authorized")
-    specs = ["Spec 1 (from stub, now async)", "Spec 2 (from stub, now async)"] # Stub
+    md = "# Stub Specs\n- Spec 1 (from stub, now async)\n- Spec 2 (from stub, now async)"
     log_activity(db, project_id, "spec_generate_stub", "generate")
-    return {"specs": specs}
+    return {"markdown": md}
 
 
 @router.post("/projects/{project_id}/validate")
