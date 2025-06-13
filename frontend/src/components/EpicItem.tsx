@@ -1,6 +1,6 @@
 // frontend/src/components/EpicItem.tsx
 import React from 'react';
-import { Epic as EpicType } from '../types/specs'; // Adjust path if needed
+import type { Epic as EpicType } from '../types/specs'; // Adjust path if needed
 import FeatureItem from './FeatureItem';
 
 interface EpicItemProps {

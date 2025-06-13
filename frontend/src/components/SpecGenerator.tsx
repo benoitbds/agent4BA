@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import fetchWithAuth from '../lib/fetchWithAuth';
 import { useAuthStore } from '../store/auth';
-import { Epic } from '../types/specs'; // Adjust path
+import type { Epic } from '../types/specs'; // Adjust path
 import EpicItem from './EpicItem'; // Adjust path
 
 interface Props {
@@ -70,9 +70,15 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
         const errorData = await res.json().catch(() => ({ detail: 'Erreur lors de la génération' }));
         setError(errorData.detail || 'Erreur lors de la génération');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError('Une erreur réseau est survenue.');
-      console.error("Network or other error in generate:", e);
+      // console.error("Network or other error in generate:", e);
+      // To use 'e', you'd need to check its type, e.g.:
+      if (e instanceof Error) {
+        console.error("Network or other error in generate:", e.message);
+      } else {
+        console.error("An unknown error occurred in generate:", e);
+      }
     } finally {
       setLoading(false);
     }
@@ -119,9 +125,14 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
         const errorData = await res.json().catch(() => ({ detail: 'Erreur lors de la sauvegarde' }));
         setSaveError(errorData.detail || 'Erreur lors de la sauvegarde des spécifications.');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setSaveError('Une erreur réseau est survenue lors de la sauvegarde.');
-      console.error("Network or other error in save:", e);
+      // console.error("Network or other error in save:", e);
+      if (e instanceof Error) {
+        console.error("Network or other error in save:", e.message);
+      } else {
+        console.error("An unknown error occurred in save:", e);
+      }
     } finally {
       setIsSaving(false);
     }
