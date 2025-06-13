@@ -1,4 +1,5 @@
-import { FormEvent, useState } from 'react'
+import type { FormEvent } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '../store/auth'
 
 export default function LoginForm() {

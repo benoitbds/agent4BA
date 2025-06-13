@@ -1,5 +1,7 @@
-import { useEffect, useState, FormEvent } from 'react'
-import { Project, useProjectsStore } from '../store/projects'
+import type { FormEvent } from 'react'
+import { useEffect, useState } from 'react'
+import type { Project } from '../store/projects'
+import { useProjectsStore } from '../store/projects'
 
 interface Props {
   project?: Project | null
