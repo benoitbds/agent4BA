@@ -29,7 +29,7 @@ export default function ProjectForm({ project, onFinish }: Props) {
       }
       setName('')
       setDescription('')
-      onFinish && onFinish()
+      onFinish?.()
     } catch (err) {
       console.error(err)
       setToast({ type: 'error', message: 'Erreur lors de l\'enregistrement' })
