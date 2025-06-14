@@ -20,13 +20,13 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    printf('startup function')
+    print('startup function')
     if not settings.openai_api_key:
         raise ValueError("OPENAI_API_KEY is missing")
-    else : printf('OPENAI_API_KEY set !')
+    else : print('OPENAI_API_KEY set !')
     if settings.secret_key == "CHANGE_ME":
         raise RuntimeError("Please set SECRET_KEY in backend/.env")
-    else : printf('SECRET set')
+    else : print('SECRET set')
     init_db()
 
 app.include_router(auth.router)
