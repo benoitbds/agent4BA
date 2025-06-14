@@ -11,6 +11,7 @@ export default function ProjectDetailPage() {
   const navigate = useNavigate()
   const getById = useProjectsStore((s) => s.getById)
   const fetchTree = useRequirementsStore((s) => s.fetchTree)
+  const reqLoading = useRequirementsStore((s) => s.loading)
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -28,10 +29,11 @@ export default function ProjectDetailPage() {
       .finally(() => setLoading(false))
   }, [id, getById, fetchTree])
 
-  if (loading) {
+  if (loading || reqLoading) {
     return (
       <div className="flex justify-center p-6">
-        <span className="spinner-border animate-spin h-6 w-6"></span>
+        <span className="spinner-border animate-spin h-6 w-6 mr-2"></span>
+        Chargement...
       </div>
     )
   }

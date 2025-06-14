@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import * as api from '../api/requirements'
+import {
+  transformToTree,
+  type RequirementNode,
+  type FlatRequirement,
+} from '../utils/transformToTree'
 
-export interface RequirementNode {
-  id: number
-  title: string
-  description?: string | null
-  level: 'requirement' | 'epic' | 'feature' | 'story' | 'use_case'
-  children: RequirementNode[]
-}
+export type { RequirementNode } from '../utils/transformToTree'
+
 
 interface RequirementsState {
   tree: RequirementNode[]
@@ -34,12 +34,11 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
   async fetchTree(projectId) {
     set({ loading: true, error: null, projectId })
     try {
-      const reqs = await api.getRequirements(projectId)
-      set({ tree: reqs })
+      const list = (await api.getRequirements(projectId)) as FlatRequirement[]
+      const tree = transformToTree(list)
+      set({ tree, loading: false })
     } catch {
-      set({ error: 'Erreur de chargement' })
-    } finally {
-      set({ loading: false })
+      set({ error: 'Erreur de chargement', loading: false })
     }
   },
   select(id) {

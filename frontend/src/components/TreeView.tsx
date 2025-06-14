@@ -6,22 +6,23 @@ function TreeNode({ node }: { node: RequirementNode }) {
   const select = useRequirementsStore((s) => s.select)
   const selectedId = useRequirementsStore((s) => s.selectedId)
   const isSelected = selectedId === node.id
+  const hasChildren = Array.isArray(node.children) && node.children.length > 0
   return (
     <li>
       <div
         className={`flex items-center gap-1 cursor-pointer px-2 py-1 ${isSelected ? 'bg-indigo-100' : ''}`}
         onClick={() => select(node.id)}
       >
-        {node.children.length > 0 && (
+        {hasChildren && (
           <span onClick={(e) => { e.stopPropagation(); setOpen(!open) }}>
             {open ? '▾' : '▸'}
           </span>
         )}
         <span>{node.title}</span>
       </div>
-      {open && node.children.length > 0 && (
+      {open && hasChildren && (
         <ul className="pl-4">
-          {node.children.map((c) => (
+          {node.children?.map((c) => (
             <TreeNode key={c.id} node={c} />
           ))}
         </ul>
