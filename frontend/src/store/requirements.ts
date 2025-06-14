@@ -1,11 +1,5 @@
 import { create } from 'zustand'
-import {
-  getTree,
-  createRequirement,
-  createEpic,
-  createFeature,
-  updateNode as updateRequest,
-} from '../api/requirements'
+import * as api from '../api/requirements'
 
 export interface RequirementNode {
   id: number
@@ -40,8 +34,8 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
   async fetchTree(projectId) {
     set({ loading: true, error: null, projectId })
     try {
-      const data = await getTree(projectId)
-      set({ tree: data })
+      const reqs = await api.getRequirements(projectId)
+      set({ tree: reqs })
     } catch {
       set({ error: 'Erreur de chargement' })
     } finally {
@@ -54,7 +48,7 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
   async createRootRequirement(projectId, data) {
     set({ loading: true })
     try {
-      await createRequirement(projectId, data)
+      await api.createRequirement(projectId, data)
       await get().fetchTree(projectId)
     } finally {
       set({ loading: false })
@@ -65,12 +59,12 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
     if (!projectId) return
     let res: Response | null = null
     if (data.level === 'requirement' || parentId === null) {
-      res = await createRequirement(projectId, {
+      res = await api.createRequirement(projectId, {
         title: data.title || '',
         description: data.description || undefined,
       })
     } else if (data.level === 'epic' && parentId) {
-      res = await createEpic(projectId, parentId, {
+      res = await api.createEpic(projectId, parentId, {
         title: data.title || '',
         description: data.description || undefined,
       })
@@ -79,7 +73,7 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
       if (!parentNode) return
       const reqNode = findParentRequirement(get().tree, parentId)
       if (!reqNode) return
-      res = await createFeature(projectId, reqNode.id, parentId, {
+      res = await api.createFeature(projectId, reqNode.id, parentId, {
         title: data.title || '',
         description: data.description || undefined,
       })
@@ -111,7 +105,7 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
         title: data.title,
         description: data.description ?? undefined,
       }
-      const res = await updateRequest(url, payload)
+      const res = await api.updateNode(url, payload)
       if (res.ok) {
         await get().fetchTree(projectId)
       }
