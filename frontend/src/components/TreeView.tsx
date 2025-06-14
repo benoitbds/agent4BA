@@ -34,7 +34,8 @@ interface Props {
   projectId: number
 }
 
-export default function TreeView({ projectId }: Props) {
+export default function TreeView(props: Props) {
+  const { projectId } = props
   const tree = useRequirementsStore((s) => s.tree)
   const loading = useRequirementsStore((s) => s.loading)
   const createRoot = useRequirementsStore((s) => s.createRootRequirement)
