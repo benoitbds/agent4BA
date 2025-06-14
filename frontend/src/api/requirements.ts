@@ -13,7 +13,10 @@ export async function createRequirement(projectId: number, data: { title: string
   return fetchWithAuth(`${API_ROOT}/projects/${projectId}/requirements/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      title: data.title,
+      description: data.description ?? '',
+    }),
   })
 }
 

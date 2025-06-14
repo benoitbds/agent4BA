@@ -8,6 +8,11 @@ import {
 
 export type { RequirementNode } from '../utils/transformToTree'
 
+export interface NewRequirement {
+  title: string
+  description?: string
+}
+
 
 interface RequirementsState {
   tree: RequirementNode[]
@@ -21,7 +26,7 @@ interface RequirementsState {
   updateNode: (id: number, data: Partial<RequirementNode>) => Promise<void>
   createRootRequirement: (
     projectId: number,
-    data: { title: string; description?: string }
+    data: NewRequirement
   ) => Promise<void>
 }
 
@@ -44,7 +49,7 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
   select(id) {
     set({ selectedId: id })
   },
-  async createRootRequirement(projectId, data) {
+  async createRootRequirement(projectId: number, data: NewRequirement) {
     set({ loading: true })
     try {
       await api.createRequirement(projectId, data)
