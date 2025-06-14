@@ -14,7 +14,7 @@ def get_session():
 def init_db() -> None:
     # Import all models here before calling create_all
     # to ensure their metadata is registered.
-    printf('init DB !')
+    print('init DB !')
     import app.models.user # noqa: F401
     import app.models.project # noqa: F401
     import app.models.requirements  # noqa: F401
