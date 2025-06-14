@@ -30,11 +30,39 @@ function TreeNode({ node }: { node: RequirementNode }) {
   )
 }
 
-export default function TreeView() {
+interface Props {
+  projectId: number
+}
+
+export default function TreeView({ projectId }: Props) {
   const tree = useRequirementsStore((s) => s.tree)
+  const loading = useRequirementsStore((s) => s.loading)
+  const createRoot = useRequirementsStore((s) => s.createRootRequirement)
+
+  const addRequirement = () => {
+    const title = prompt('Nom du requirement ?')
+    if (title) {
+      createRoot(projectId, { title, description: '' })
+    }
+  }
+
   return (
-    <aside className="w-60 bg-white border-r h-[calc(100vh-4rem)] overflow-y-auto">
-      <ul className="text-sm">
+    <aside className="w-60 bg-white border-r h-[calc(100vh-4rem)] overflow-y-auto flex flex-col">
+      <div className="flex justify-between items-center p-2">
+        <span />
+        <button
+          onClick={addRequirement}
+          disabled={loading}
+          className="text-sm text-indigo-600 hover:underline disabled:opacity-50 flex items-center"
+        >
+          {loading ? (
+            <span className="spinner-border animate-spin h-4 w-4" />
+          ) : (
+            '＋ Requirement'
+          )}
+        </button>
+      </div>
+      <ul className="text-sm flex-1">
         {tree.map((n) => (
           <TreeNode key={n.id} node={n} />
         ))}

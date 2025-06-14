@@ -1,5 +1,11 @@
 import { create } from 'zustand'
-import { getTree, createRequirement, createEpic, createFeature, updateNode as updateRequest } from '../api/requirements'
+import {
+  getTree,
+  createRequirement,
+  createEpic,
+  createFeature,
+  updateNode as updateRequest,
+} from '../api/requirements'
 
 export interface RequirementNode {
   id: number
@@ -19,6 +25,10 @@ interface RequirementsState {
   select: (id: number | null) => void
   addNode: (parentId: number | null, data: Partial<RequirementNode>) => Promise<void>
   updateNode: (id: number, data: Partial<RequirementNode>) => Promise<void>
+  createRootRequirement: (
+    projectId: number,
+    data: { title: string; description?: string }
+  ) => Promise<void>
 }
 
 export const useRequirementsStore = create<RequirementsState>((set, get) => ({
@@ -40,6 +50,15 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
   },
   select(id) {
     set({ selectedId: id })
+  },
+  async createRootRequirement(projectId, data) {
+    set({ loading: true })
+    try {
+      await createRequirement(projectId, data)
+      await get().fetchTree(projectId)
+    } finally {
+      set({ loading: false })
+    }
   },
   async addNode(parentId, data) {
     const { projectId } = get()

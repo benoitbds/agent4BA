@@ -42,7 +42,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="flex">
-      <TreeView />
+      <TreeView projectId={project.id} />
       <div className="flex-1 overflow-hidden">
         <div className="flex justify-between items-center p-4">
           <h2 className="text-xl font-semibold">{project.name}</h2>
