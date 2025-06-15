@@ -52,7 +52,10 @@ export const useRequirementsStore = create<RequirementsState>((set, get) => ({
   async createRootRequirement(projectId: number, data: NewRequirement) {
     set({ loading: true })
     try {
-      await api.createRequirement(projectId, data)
+      await api.createRequirement(projectId, {
+        title: data.title,
+        description: data.description ?? '',
+      })
       await get().fetchTree(projectId)
     } finally {
       set({ loading: false })

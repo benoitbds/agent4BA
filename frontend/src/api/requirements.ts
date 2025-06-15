@@ -16,6 +16,7 @@ export async function createRequirement(projectId: number, data: { title: string
     body: JSON.stringify({
       title: data.title,
       description: data.description ?? '',
+      project_id: projectId,
     }),
   })
 }

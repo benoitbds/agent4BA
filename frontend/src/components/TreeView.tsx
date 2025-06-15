@@ -44,7 +44,7 @@ export default function TreeView(props: Props) {
   const addRequirement = () => {
     const title = prompt('Nom du requirement ?')
     if (title) {
-      createRoot(projectId, { title, description: '' })
+      createRoot(projectId, { title })
     }
   }
 
