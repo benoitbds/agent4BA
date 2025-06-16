@@ -10,8 +10,10 @@ export interface SpecNode {
 }
 
 interface SpecState {
+  projectId: number | null
   nodes: SpecNode[]
   selectedId: string | null
+  load: (projectId: number) => void
   select: (id: string | null) => void
   createNode: (level: SpecLevel, parentId?: string | null) => void
   indentNode: (id: string) => void
@@ -56,8 +58,14 @@ function addChild(nodes: SpecNode[], parentId: string, child: SpecNode): SpecNod
 }
 
 export const useSpecStore = create<SpecState>((set) => ({
+  projectId: null,
   nodes: dummyData,
   selectedId: null,
+  load: (projectId) =>
+    set(() => ({
+      projectId,
+      nodes: dummyData, // TODO fetch real data
+    })),
   select: (id) => set({ selectedId: id }),
   createNode: (level, parentId) =>
     set((state) => {
