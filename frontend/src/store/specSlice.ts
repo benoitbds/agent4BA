@@ -34,7 +34,7 @@ export const useSpecStore = create<SpecState>((set, get) => ({
     const tempId = Date.now()
     const optimistic: SpecNode = { id: tempId, project_id: projectId, ...data }
     set((state) => ({ nodes: [...state.nodes, optimistic] }))
-    const res = await apiFetch(buildEndpoint(data as SpecNode, projectId), {
+    const res = await apiFetch(buildEndpoint(data as SpecNode, projectId, true), {
       method: 'POST',
       body: JSON.stringify(data),
     })
@@ -51,7 +51,7 @@ export const useSpecStore = create<SpecState>((set, get) => ({
   async update(projectId, node) {
     const prev = get().nodes
     set({ nodes: prev.map((n) => (n.id === node.id ? node : n)) })
-    const res = await apiFetch(buildEndpoint(node, projectId), {
+    const res = await apiFetch(buildEndpoint(node, projectId, false), {
       method: 'PUT',
       body: JSON.stringify(node),
     })
@@ -66,7 +66,7 @@ export const useSpecStore = create<SpecState>((set, get) => ({
   async remove(projectId, node) {
     const prev = get().nodes
     set({ nodes: prev.filter((n) => n.id !== node.id) })
-    const res = await apiFetch(buildEndpoint(node, projectId), { method: 'DELETE' })
+    const res = await apiFetch(buildEndpoint(node, projectId, false), { method: 'DELETE' })
     if (!res.ok) {
       set({ nodes: prev })
     }

@@ -1,29 +1,21 @@
-import type { SpecLevel } from '../types/SpecNode'
-
-export type NodeType = SpecLevel
+import type { SpecNode } from '../types/SpecNode'
 
 export const buildEndpoint = (
-  nodeType: NodeType,
-  ids: {
-    projectId: string
-    requirementId?: string
-    epicId?: string
-    featureId?: string
-    storyId?: string
-    usecaseId?: string
-  },
+  node: SpecNode,
+  projectId: number,
   isCreate: boolean
 ): string => {
-  switch (nodeType) {
+  const pid = String(projectId)
+  switch (node.level) {
     case 'requirement':
-      return `/api/v1/projects/${ids.projectId}/requirements/${isCreate ? '' : `${ids.requirementId}`}`
+      return `/api/v1/projects/${pid}/requirements/${isCreate ? '' : node.id}`
     case 'epic':
-      return `/api/v1/projects/${ids.projectId}/requirements/${ids.requirementId}/epics/${isCreate ? '' : `${ids.epicId}`}`
+      return `/api/v1/projects/${pid}/requirements/${node.parent_req_id}/epics/${isCreate ? '' : node.id}`
     case 'feature':
-      return `/api/v1/projects/${ids.projectId}/requirements/${ids.requirementId}/epics/${ids.epicId}/features/${isCreate ? '' : `${ids.featureId}`}`
+      return `/api/v1/projects/${pid}/requirements/${node.parent_req_id}/epics/${node.parent_epic_id}/features/${isCreate ? '' : node.id}`
     case 'story':
-      return `/api/v1/projects/${ids.projectId}/epics/${ids.epicId}/features/${ids.featureId}/stories/${isCreate ? '' : `${ids.storyId}`}`
+      return `/api/v1/projects/${pid}/epics/${node.parent_epic_id}/features/${node.parent_feature_id}/stories/${isCreate ? '' : node.id}`
     case 'usecase':
-      return `/api/v1/projects/${ids.projectId}/features/${ids.featureId}/stories/${ids.storyId}/usecases/${isCreate ? '' : `${ids.usecaseId}`}`
+      return `/api/v1/projects/${pid}/features/${node.parent_feature_id}/stories/${node.parent_story_id}/usecases/${isCreate ? '' : node.id}`
   }
 }
