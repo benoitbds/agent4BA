@@ -1,57 +1,39 @@
 import { useState } from 'react'
 import ConfirmModal from './ConfirmModal'
-import { useSpecStore, type SpecNode } from '../store/specSlice'
+import { useSpecStore } from '../store/specSlice'
+import type { SpecNode } from '../types/SpecNode'
+
+function getParentId(n: SpecNode): number | null {
+  return (
+    n.parent_story_id ?? n.parent_feature_id ?? n.parent_epic_id ?? n.parent_req_id ?? null
+  )
+}
 
 function TreeItem({ node }: { node: SpecNode }) {
   const [open, setOpen] = useState(true)
   const [editing, setEditing] = useState(false)
   const [confirm, setConfirm] = useState(false)
-  const select = useSpecStore((s) => s.select)
-  const indent = useSpecStore((s) => s.indentNode)
-  const outdent = useSpecStore((s) => s.outdentNode)
-  const remove = useSpecStore((s) => s.deleteNode)
-  const addSibling = useSpecStore((s) => s.createNode)
-  const rename = useSpecStore((s) => s.rename)
-  const selectedId = useSpecStore((s) => s.selectedId)
-  const isSelected = selectedId === node.id
+  const nodes = useSpecStore((s) => s.nodes)
+  const create = useSpecStore((s) => s.create)
+  const update = useSpecStore((s) => s.update)
+  const remove = useSpecStore((s) => s.remove)
 
-  const handleKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addSibling(node.level, node.parentId)
-    } else if (e.key === 'F2') {
-      e.preventDefault()
-      setEditing(true)
-    } else if (e.key === 'Tab' && !e.shiftKey) {
-      e.preventDefault()
-      indent(node.id)
-    } else if (e.key === 'Tab' && e.shiftKey) {
-      e.preventDefault()
-      outdent(node.id)
-    }
-  }
+  const children = nodes.filter((n) => getParentId(n) === node.id)
 
   return (
     <li>
-      <div
-        tabIndex={0}
-        onKeyDown={handleKey}
-        onClick={() => select(node.id)}
-        className={`flex items-center gap-1 px-2 py-1 cursor-pointer rounded ${isSelected ? 'bg-indigo-100' : ''}`}
-      >
-        {node.children.length > 0 && (
-          <span onClick={(e) => { e.stopPropagation(); setOpen(!open) }}>
-            {open ? '▾' : '▸'}
-          </span>
+      <div className="flex items-center gap-1 px-2 py-1">
+        {children.length > 0 && (
+          <span onClick={() => setOpen(!open)}>{open ? '▾' : '▸'}</span>
         )}
         {editing ? (
           <input
             autoFocus
             defaultValue={node.title}
-            onBlur={(e) => { rename(node.id, e.target.value); setEditing(false) }}
+            onBlur={(e) => { update(node.project_id, { ...node, title: e.target.value }); setEditing(false) }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                rename(node.id, (e.target as HTMLInputElement).value)
+                update(node.project_id, { ...node, title: (e.target as HTMLInputElement).value })
                 setEditing(false)
               }
             }}
@@ -61,21 +43,18 @@ function TreeItem({ node }: { node: SpecNode }) {
           <span onDoubleClick={() => setEditing(true)}>{node.title}</span>
         )}
         <button
-          onClick={(e) => { e.stopPropagation(); addSibling(node.level, node.parentId) }}
+          onClick={() => create(node.project_id, { title: 'New', level: node.level, parent_req_id: node.level === 'requirement' ? node.id : node.parent_req_id, parent_epic_id: node.level === 'epic' ? node.id : node.parent_epic_id, parent_feature_id: node.level === 'feature' ? node.id : node.parent_feature_id, parent_story_id: node.level === 'story' ? node.id : node.parent_story_id })}
           className="ml-auto text-xs"
         >
           ＋
         </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); setConfirm(true) }}
-          className="text-xs text-red-600"
-        >
+        <button onClick={() => setConfirm(true)} className="text-xs text-red-600">
           ✖
         </button>
       </div>
-      {open && node.children.length > 0 && (
+      {open && children.length > 0 && (
         <ul className="pl-4">
-          {node.children.map((c) => (
+          {children.map((c) => (
             <TreeItem key={c.id} node={c} />
           ))}
         </ul>
@@ -83,7 +62,7 @@ function TreeItem({ node }: { node: SpecNode }) {
       <ConfirmModal
         open={confirm}
         onCancel={() => setConfirm(false)}
-        onConfirm={() => { remove(node.id); setConfirm(false) }}
+        onConfirm={() => { remove(node.project_id, node); setConfirm(false) }}
         message="Supprimer ?"
       />
     </li>
