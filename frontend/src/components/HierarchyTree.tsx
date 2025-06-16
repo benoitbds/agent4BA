@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import ConfirmModal from './ConfirmModal'
 import { useSpecStore } from '../store/specSlice'
 import type { SpecNode } from '@/types/SpecNode'
