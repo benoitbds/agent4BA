@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import ConfirmModal from './ConfirmModal'
 import { useSpecStore } from '../store/specSlice'
-import type { SpecNode } from '../types/SpecNode'
+import type { SpecNode } from '@/types/SpecNode'
 
 function getParentId(n: SpecNode): number | null {
   return (
@@ -55,7 +55,7 @@ function TreeItem({ node }: { node: SpecNode }) {
       {open && children.length > 0 && (
         <ul className="pl-4">
           {children.map((c) => (
-            <TreeItem key={c.id ?? `tmp-${(c as any).__tmpId}`} node={c} />
+            <TreeItem key={c.id} node={c} />
           ))}
         </ul>
       )}
@@ -75,7 +75,7 @@ export default function HierarchyTree() {
     <aside className="w-64 border-r overflow-y-auto p-2 h-full">
       <ul>
         {nodes.map((n) => (
-          <TreeItem key={n.id ?? `tmp-${(n as any).__tmpId}`} node={n} />
+          <TreeItem key={n.id} node={n} />
         ))}
       </ul>
     </aside>
