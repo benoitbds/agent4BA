@@ -25,7 +25,7 @@ export const useSpecStore = create<SpecState>((set, get) => ({
       if (!res.ok) throw new Error('fetch error')
       const data = (await res.json()) as SpecNode[]
       set({ nodes: data, loading: false })
-    } catch (e) {
+    } catch () {
       set({ error: 'Failed to load', loading: false })
     }
   },
