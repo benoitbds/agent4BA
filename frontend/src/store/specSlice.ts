@@ -31,44 +31,47 @@ export const useSpecStore = create<SpecState>((set, get) => ({
   },
 
   async create(projectId, data) {
-    const tempId = Date.now()
-    const optimistic: SpecNode = { id: tempId, project_id: projectId, ...data }
-    set((state) => ({ nodes: [...state.nodes, optimistic] }))
-    const res = await apiFetch(buildEndpoint(data as SpecNode, projectId, true), {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-    if (res.ok) {
-      const created = await res.json()
-      set((state) => ({
-        nodes: state.nodes.map((n) => (n.id === tempId ? created : n)),
-      }))
-    } else {
-      set((state) => ({ nodes: state.nodes.filter((n) => n.id !== tempId) }))
+    set({ loading: true, error: undefined })
+    try {
+      const res = await apiFetch(buildEndpoint(data as SpecNode, projectId, true), {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error('create failed')
+      await get().fetchTree(projectId)
+    } catch (e: unknown) {
+      set({ error: (e as Error).message })
+    } finally {
+      set({ loading: false })
     }
   },
 
   async update(projectId, node) {
-    const prev = get().nodes
-    set({ nodes: prev.map((n) => (n.id === node.id ? node : n)) })
-    const res = await apiFetch(buildEndpoint(node, projectId, false), {
-      method: 'PUT',
-      body: JSON.stringify(node),
-    })
-    if (!res.ok) {
-      set({ nodes: prev })
-    } else {
-      const updated = await res.json()
-      set((state) => ({ nodes: state.nodes.map((n) => (n.id === node.id ? updated : n)) }))
+    set({ loading: true, error: undefined })
+    try {
+      const res = await apiFetch(buildEndpoint(node, projectId, false), {
+        method: 'PUT',
+        body: JSON.stringify(node),
+      })
+      if (!res.ok) throw new Error('update failed')
+      await get().fetchTree(projectId)
+    } catch (e: unknown) {
+      set({ error: (e as Error).message })
+    } finally {
+      set({ loading: false })
     }
   },
 
   async remove(projectId, node) {
-    const prev = get().nodes
-    set({ nodes: prev.filter((n) => n.id !== node.id) })
-    const res = await apiFetch(buildEndpoint(node, projectId, false), { method: 'DELETE' })
-    if (!res.ok) {
-      set({ nodes: prev })
+    set({ loading: true, error: undefined })
+    try {
+      const res = await apiFetch(buildEndpoint(node, projectId, false), { method: 'DELETE' })
+      if (!res.ok) throw new Error('delete failed')
+      await get().fetchTree(projectId)
+    } catch (e: unknown) {
+      set({ error: (e as Error).message })
+    } finally {
+      set({ loading: false })
     }
   },
 }))
