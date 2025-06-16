@@ -1,10 +1,9 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, Outlet } from 'react-router-dom'
 import { Suspense } from 'react'
 import Layout from '../components/Layout'
 import LoginForm from '../components/LoginForm'
 import { useAuthStore } from '../store/auth'
-import ProjectListPage from '../pages/ProjectListPage'
-import ProjectDetail from '../pages/ProjectDetail'
+import { routeConfig } from './helpers'
 
 const ProtectedLayout = () => {
   const { token, logout } = useAuthStore()
@@ -23,13 +22,13 @@ const ProtectedLayout = () => {
   )
 }
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     element: <ProtectedLayout />,
-    children: [
-      { index: true, element: <Navigate to="/projects" replace /> },
-      { path: '/projects', element: <ProjectListPage /> },
-      { path: '/projects/:id', element: <ProjectDetail /> },
-    ],
+    children: routeConfig,
   },
 ])
+
+export default function Router() {
+  return <RouterProvider router={router} />
+}
