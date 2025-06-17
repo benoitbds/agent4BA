@@ -1,20 +1,29 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
 import { useSpecStore } from '../../frontend/src/store/specSlice'
-import { apiFetch } from '../../frontend/src/lib/api'
 
-vi.mock('../../frontend/src/lib/api', () => ({ apiFetch: vi.fn() }))
+const server = setupServer()
 
-const mockResponse = (data: unknown) => Promise.resolve({ ok: true, json: () => Promise.resolve(data) }) as unknown as Response
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+afterEach(() => {
+  server.resetHandlers()
+  useSpecStore.setState({ nodes: [], loading: false })
+})
+afterAll(() => server.close())
 
 describe('specSlice async actions', () => {
-  beforeEach(() => {
-    useSpecStore.setState({ nodes: [], loading: false })
-    ;(apiFetch as unknown as vi.Mock).mockResolvedValue(mockResponse([{ id: 1, title: 'Req', level: 'requirement', project_id: 1 }]))
-  })
-
   it('fetchTree stores nodes', async () => {
+    server.use(
+      rest.get('/api/v1/projects/:id/requirements/', (_req, res, ctx) =>
+        res(
+          ctx.status(200),
+          ctx.json([{ id: 1, title: 'Req', level: 'requirement', project_id: 1 }])
+        )
+      )
+    )
+
     await useSpecStore.getState().fetchTree(1)
     expect(useSpecStore.getState().nodes.length).toBe(1)
-    expect((apiFetch as unknown as vi.Mock).mock.calls[0][0]).toContain('/projects/1')
   })
 })
