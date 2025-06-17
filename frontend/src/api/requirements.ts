@@ -44,3 +44,60 @@ export async function updateNode(url: string, data: { title?: string; descriptio
     body: JSON.stringify(data),
   })
 }
+
+export async function getUseCases(
+  projectId: number,
+  featureId: number,
+  storyId: number
+) {
+  const url =
+    `${API_ROOT}/projects/${projectId}/features/${featureId}/stories/${storyId}/usecases/`
+  const res = await fetchWithAuth(url)
+  if (!res.ok) throw new Error('fetch error')
+  return res.json()
+}
+
+export async function createUseCase(
+  projectId: number,
+  featureId: number,
+  storyId: number,
+  data: { title: string; description?: string }
+) {
+  return fetchWithAuth(
+    `${API_ROOT}/projects/${projectId}/features/${featureId}/stories/${storyId}/usecases/`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export async function updateUseCase(
+  projectId: number,
+  featureId: number,
+  storyId: number,
+  usecaseId: number,
+  data: { title?: string; description?: string }
+) {
+  return fetchWithAuth(
+    `${API_ROOT}/projects/${projectId}/features/${featureId}/stories/${storyId}/usecases/${usecaseId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }
+  )
+}
+
+export async function deleteUseCase(
+  projectId: number,
+  featureId: number,
+  storyId: number,
+  usecaseId: number
+) {
+  return fetchWithAuth(
+    `${API_ROOT}/projects/${projectId}/features/${featureId}/stories/${storyId}/usecases/${usecaseId}`,
+    { method: 'DELETE' }
+  )
+}
