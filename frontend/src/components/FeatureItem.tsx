@@ -16,8 +16,8 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ feature }) => {
         <>
           <h6 className="text-xs font-medium text-gray-500 mt-1">User Stories:</h6>
           <ul className="pl-4">
-            {feature.user_stories.map((story, index) => (
-              <UserStoryListItem key={index} story={story} />
+            {feature.user_stories.map((story) => (
+              <UserStoryListItem key={story.id} story={story.text} />
             ))}
           </ul>
         </>

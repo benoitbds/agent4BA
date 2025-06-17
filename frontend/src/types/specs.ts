@@ -1,15 +1,18 @@
 // frontend/src/types/specs.ts
 export interface UserStory {
-  text: string; // Assuming user stories are strings for now, adjust if they become objects
+  id: string;
+  text: string;
 }
 
 export interface Feature {
+  id: string;
   title: string;
   description: string;
-  user_stories: string[]; // Array of user story strings
+  user_stories: UserStory[];
 }
 
 export interface Epic {
+  id: string;
   title: string;
   description: string;
   features: Feature[];
