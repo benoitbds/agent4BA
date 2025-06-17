@@ -15,8 +15,8 @@ const EpicItem: React.FC<EpicItemProps> = ({ epic }) => {
       {epic.features && epic.features.length > 0 && (
         <div>
           <h5 className="font-semibold text-gray-600 mt-2 mb-1">Features:</h5>
-          {epic.features.map((feature, index) => (
-            <FeatureItem key={index} feature={feature} />
+          {epic.features.map((feature) => (
+            <FeatureItem key={feature.id} feature={feature} />
           ))}
         </div>
       )}
