@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ConfirmModal from './ConfirmModal'
+import Modal from './Modal'
+import NodeForm from './forms/NodeForm'
 import { useSpecStore } from '../store/specSlice'
 import type { SpecNode, SpecLevel } from '@/types/SpecNode'
 
@@ -47,10 +49,26 @@ function buildChildData(parent: SpecNode): Omit<SpecNode, 'id' | 'project_id'> {
   }
 }
 
+interface AddModalProps {
+  open: boolean
+  title: string
+  onSave: (values: { title: string; description: string }) => void
+  onCancel: () => void
+}
+
+function AddModal({ open, title, onSave, onCancel }: AddModalProps) {
+  return (
+    <Modal open={open} title={title} onClose={onCancel}>
+      <NodeForm onSave={onSave} onCancel={onCancel} />
+    </Modal>
+  )
+}
+
 function TreeItem({ node, editable }: TreeItemProps) {
   const [open, setOpen] = useState(true)
   const [editing, setEditing] = useState(false)
   const [confirm, setConfirm] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
   const nodes = useSpecStore((s) => s.nodes)
   const create = useSpecStore((s) => s.create)
   const update = useSpecStore((s) => s.update)
@@ -84,10 +102,7 @@ function TreeItem({ node, editable }: TreeItemProps) {
           <span onDoubleClick={() => editable && setEditing(true)}>{node.title}</span>
         )}
         {editable && getChildLevel(node.level) && (
-          <button
-            onClick={() => create(node.project_id, buildChildData(node))}
-            className="ml-auto text-xs"
-          >
+          <button onClick={() => setAddOpen(true)} className="ml-auto text-xs">
             ＋
           </button>
         )}
@@ -115,6 +130,17 @@ function TreeItem({ node, editable }: TreeItemProps) {
           message="Supprimer ?"
         />
       )}
+      {editable && getChildLevel(node.level) && (
+        <AddModal
+          open={addOpen}
+          title={`Ajouter ${getChildLevel(node.level)}`}
+          onCancel={() => setAddOpen(false)}
+          onSave={(vals) => {
+            create(node.project_id, { ...buildChildData(node), ...vals })
+            setAddOpen(false)
+          }}
+        />
+      )}
     </li>
   )
 }
@@ -129,18 +155,30 @@ export default function HierarchyTree({ editable = false, projectId }: TreeProps
   const create = useSpecStore((s) => s.create)
   const { id } = useParams<{ id?: string }>()
   const pid = projectId ?? Number(id)
+  const [rootOpen, setRootOpen] = useState(false)
 
-  const addRequirement = () => {
+  const addRequirement = ({ title, description }: { title: string; description: string }) => {
     if (!pid) return
-    create(pid, { title: 'New Requirement', level: 'requirement' })
+    create(pid, { title, description, level: 'requirement' })
   }
 
   return (
     <aside className="w-64 border-r overflow-y-auto p-2 h-full">
       {editable && (
         <div className="flex justify-end pb-2">
-          <button onClick={addRequirement} className="text-xs text-indigo-600">＋ Requirement</button>
+          <button onClick={() => setRootOpen(true)} className="text-xs text-indigo-600">＋ Requirement</button>
         </div>
+      )}
+      {editable && (
+        <AddModal
+          open={rootOpen}
+          title="Ajouter requirement"
+          onCancel={() => setRootOpen(false)}
+          onSave={(vals) => {
+            addRequirement(vals)
+            setRootOpen(false)
+          }}
+        />
       )}
       <ul>
         {nodes.map((n) => (
