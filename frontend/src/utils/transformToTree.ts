@@ -2,7 +2,7 @@ export interface FlatRequirement {
   id: number;
   title: string;
   description?: string | null;
-  level: 'requirement' | 'epic' | 'feature' | 'story' | 'use_case';
+  level: 'requirement' | 'epic' | 'feature' | 'story' | 'usecase';
   parent_req_id?: number | null;
   parent_epic_id?: number | null;
   parent_feature_id?: number | null;

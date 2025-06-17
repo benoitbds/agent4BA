@@ -15,7 +15,7 @@ export default function UseCaseForm({ node, parentId }: Props) {
     if (node) {
       await update(node.id, values)
     } else {
-      await add(parentId ?? null, { level: 'use_case', ...values })
+      await add(parentId ?? null, { level: 'usecase', ...values })
     }
   }
 
