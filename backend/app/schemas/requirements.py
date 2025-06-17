@@ -5,14 +5,15 @@ from sqlmodel import SQLModel
 class RequirementBase(SQLModel):
     title: str
     description: Optional[str] = None
-    project_id: int
+    project_id: Optional[int] = None
     is_active: bool = True
 
 class RequirementCreate(RequirementBase):
-    pass
+    project_id: Optional[int] = None
 
 class RequirementRead(RequirementBase):
     id: int
+    project_id: int
 
 class RequirementUpdate(SQLModel):
     title: Optional[str] = None
@@ -31,10 +32,13 @@ class EpicBase(SQLModel):
     is_active: bool = True
 
 class EpicCreate(EpicBase):
-    pass
+    project_id: Optional[int] = None
+    parent_req_id: Optional[int] = None
 
 class EpicRead(EpicBase):
     id: int
+    project_id: int
+    parent_req_id: int
 
 class EpicUpdate(SQLModel):
     title: Optional[str] = None
@@ -52,10 +56,13 @@ class FeatureBase(SQLModel):
     is_active: bool = True
 
 class FeatureCreate(FeatureBase):
-    pass
+    project_id: Optional[int] = None
+    parent_epic_id: Optional[int] = None
 
 class FeatureRead(FeatureBase):
     id: int
+    project_id: int
+    parent_epic_id: int
 
 class FeatureUpdate(SQLModel):
     title: Optional[str] = None
@@ -74,10 +81,13 @@ class UserStoryBase(SQLModel):
     is_active: bool = True
 
 class UserStoryCreate(UserStoryBase):
-    pass
+    project_id: Optional[int] = None
+    parent_feature_id: Optional[int] = None
 
 class UserStoryRead(UserStoryBase):
     id: int
+    project_id: int
+    parent_feature_id: int
 
 class UserStoryUpdate(SQLModel):
     title: Optional[str] = None
@@ -97,10 +107,13 @@ class UseCaseBase(SQLModel):
     is_active: bool = True
 
 class UseCaseCreate(UseCaseBase):
-    pass
+    project_id: Optional[int] = None
+    parent_story_id: Optional[int] = None
 
 class UseCaseRead(UseCaseBase):
     id: int
+    project_id: int
+    parent_story_id: int
 
 class UseCaseUpdate(SQLModel):
     title: Optional[str] = None
