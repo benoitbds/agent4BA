@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useRequirementsStore, type RequirementNode } from '../store/requirements'
+import Modal from './Modal'
+import NodeForm from './forms/NodeForm'
 
 function TreeNode({ node }: { node: RequirementNode }) {
   const [open, setOpen] = useState(false)
@@ -41,11 +43,11 @@ export default function TreeView(props: Props) {
   const loading = useRequirementsStore((s) => s.loading)
   const createRoot = useRequirementsStore((s) => s.createRootRequirement)
 
-  const addRequirement = () => {
-    const title = prompt('Nom du requirement ?')
-    if (title) {
-      createRoot(projectId, { title })
-    }
+  const [open, setOpen] = useState(false)
+
+  const save = async (values: { title: string; description: string }) => {
+    await createRoot(projectId, values)
+    setOpen(false)
   }
 
   return (
@@ -53,7 +55,7 @@ export default function TreeView(props: Props) {
       <div className="flex justify-between items-center p-2">
         <span />
         <button
-          onClick={addRequirement}
+          onClick={() => setOpen(true)}
           disabled={loading}
           className="text-sm text-indigo-600 hover:underline disabled:opacity-50 flex items-center"
         >
@@ -69,6 +71,9 @@ export default function TreeView(props: Props) {
           <TreeNode key={n.id} node={n} />
         ))}
       </ul>
+      <Modal open={open} title="Nouveau requirement" onClose={() => setOpen(false)}>
+        <NodeForm onSave={save} onCancel={() => setOpen(false)} />
+      </Modal>
     </aside>
   )
 }
