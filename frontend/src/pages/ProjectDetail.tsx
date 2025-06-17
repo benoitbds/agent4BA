@@ -15,6 +15,7 @@ export default function ProjectDetail() {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -45,13 +46,18 @@ export default function ProjectDetail() {
   return (
     <div className="h-full">
       <div className="grid grid-cols-[1fr_2fr] h-full">
-        <HierarchyTree />
+        <HierarchyTree editable={editMode} projectId={project.id} />
         <div className="flex flex-col">
           <div className="flex justify-between items-center p-4">
             <h2 className="text-xl font-semibold">{project.name}</h2>
-            <button onClick={() => navigate('/projects')} className="underline">
-              Retour
-            </button>
+            <div className="flex gap-2">
+              <button onClick={() => setEditMode(!editMode)} className="underline text-sm">
+                {editMode ? 'Finir édition' : 'Éditer'}
+              </button>
+              <button onClick={() => navigate('/projects')} className="underline text-sm">
+                Retour
+              </button>
+            </div>
           </div>
           <DetailPanel />
         </div>
