@@ -127,7 +127,9 @@ def test_create_requirement(
         "project_id": test_project.id,  # Use the ID from the created test_project
         "is_active": True,
     }
-    response = client.post("/api/v1/requirements/", json=requirement_data_live)
+    response = client.post(
+        f"/api/v1/projects/{test_project.id}/requirements/", json=requirement_data_live
+    )
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["title"] == requirement_data_live["title"]
@@ -157,7 +159,7 @@ def test_read_requirement(
     db_session.commit()
     db_session.refresh(req)
 
-    response = client.get(f"/api/v1/requirements/{req.id}")
+    response = client.get(f"/api/v1/projects/{test_project.id}/requirements/{req.id}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["title"] == req.title
@@ -182,7 +184,7 @@ def test_read_requirements_list(
     db_session.add_all([req1, req2])
     db_session.commit()
 
-    response = client.get("/api/v1/requirements/")
+    response = client.get(f"/api/v1/projects/{test_project.id}/requirements/")
     assert response.status_code == 200, response.text
     data = response.json()
     # This check is fragile if DB is not perfectly clean or other tests add items.
@@ -211,7 +213,10 @@ def test_update_requirement(
     db_session.refresh(req)
 
     update_payload = {"title": "Updated Test Req"}
-    response = client.put(f"/api/v1/requirements/{req.id}", json=update_payload)
+    response = client.put(
+        f"/api/v1/projects/{test_project.id}/requirements/{req.id}",
+        json=update_payload,
+    )
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["title"] == update_payload["title"]
@@ -233,7 +238,9 @@ def test_delete_requirement(
     db_session.commit()
     db_session.refresh(req)
 
-    response = client.delete(f"/api/v1/requirements/{req.id}")
+    response = client.delete(
+        f"/api/v1/projects/{test_project.id}/requirements/{req.id}"
+    )
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["ok"] is True
