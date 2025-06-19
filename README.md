@@ -22,3 +22,13 @@ Une application web Single-Page optimisée pour votre productivité avec des pan
 Avec Agent4BA, autonomisez et fluidifiez votre processus d'analyse fonctionnelle, garantissant rigueur, rapidité et clarté à chaque étape du projet.
 
 **Mots-clés :** IA générative, spécifications fonctionnelles, autonomie agentique, webapp single-page, visualisation interactive, intégration Jira, export PDF/Word 🛠️🤖📈
+
+## Setup
+
+Run the helper script to prepare the Python environment and install frontend
+packages:
+
+```bash
+bash setup.sh
+cd frontend && npm install
+```
