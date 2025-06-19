@@ -1,3 +1,5 @@
+[![Frontend CI](https://github.com/benoitbds/agent4BA/actions/workflows/frontend.yml/badge.svg)](https://github.com/benoitbds/agent4BA/actions/workflows/frontend.yml)
+
 🚀 **Agent4BA** est la première plateforme web intelligente dédiée aux analystes fonctionnels, combinant la puissance de l'IA générative avec une expérience agentique totalement autonome. Inspirée par Codex et Claude Code, Agent4BA permet aux fonctionnels d'obtenir rapidement des spécifications complètes simplement en discutant en langage naturel.
 
 🔹 **Expérience Agentique Autonome** :
