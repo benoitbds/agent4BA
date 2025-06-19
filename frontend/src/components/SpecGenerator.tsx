@@ -1,51 +1,54 @@
-import { useState } from 'react';
-import fetchWithAuth from '../lib/fetchWithAuth';
-import { useAuthStore } from '../store/auth';
-import type { Epic } from '../types/specs'; // Adjust path
-import EpicItem from './EpicItem'; // Adjust path
+import { useState } from 'react'
+import fetchWithAuth from '../lib/fetchWithAuth'
+import { useAuthStore } from '../store/auth'
+import type { Epic } from '../types/specs' // Adjust path
+import EpicItem from './EpicItem' // Adjust path
 
 interface Props {
-  projectId: number;
-  onGenerated?: (specs: Epic[]) => void; // Updated type
+  projectId: number
+  onGenerated?: (specs: Epic[]) => void // Updated type
 }
 
 export default function SpecGenerator({ projectId, onGenerated }: Props) {
-  const token = useAuthStore((s) => s.token);
+  const token = useAuthStore((s) => s.token)
 
   // Existing state
-  const [specs, setSpecs] = useState<Epic[]>([]); // Updated type
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [specs, setSpecs] = useState<Epic[]>([]) // Updated type
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   // New state for inputs
-  const [projectName, setProjectName] = useState('');
-  const [projectDescription, setProjectDescription] = useState('');
-  const [projectGoals, setProjectGoals] = useState(''); // Comma-separated string
+  const [projectName, setProjectName] = useState('')
+  const [projectDescription, setProjectDescription] = useState('')
+  const [projectGoals, setProjectGoals] = useState('') // Comma-separated string
 
   // New state for save operation
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
-  const [saveSuccessMessage, setSaveSuccessMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState('')
 
   const generate = async () => {
     // Ensure that after successful generation, any previous save messages are cleared
-    setSaveSuccessMessage('');
-    setSaveError('');
+    setSaveSuccessMessage('')
+    setSaveError('')
     if (!projectName.trim() || !projectDescription.trim()) {
-      setError('Project name and description are required.');
-      return;
+      setError('Project name and description are required.')
+      return
     }
 
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
 
-    const goalsArray = projectGoals.split(',').map(goal => goal.trim()).filter(goal => goal);
+    const goalsArray = projectGoals
+      .split(',')
+      .map((goal) => goal.trim())
+      .filter((goal) => goal)
 
     const requestBody = {
       project_name: projectName,
       project_description: projectDescription,
       project_goals: goalsArray,
-    };
+    }
 
     try {
       const res = await fetchWithAuth(
@@ -57,15 +60,15 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
             // Authorization header is handled by fetchWithAuth
           },
           body: JSON.stringify(requestBody),
-        }
-      );
+        },
+      )
 
       if (res.ok) {
-        const data = await res.json();
-        const epicsWithIds: Epic[] = (data.epics || []).map((epic: any) => ({
+        const data = await res.json()
+        const epicsWithIds: Epic[] = (data.epics || []).map((epic) => ({
           ...epic,
           id: crypto.randomUUID(),
-          features: (epic.features || []).map((feature: any) => ({
+          features: (epic.features || []).map((feature) => ({
             ...feature,
             id: crypto.randomUUID(),
             user_stories: (feature.user_stories || []).map((story: string) => ({
@@ -73,30 +76,32 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
               text: story,
             })),
           })),
-        }));
-        setSpecs(epicsWithIds);
-        onGenerated?.(epicsWithIds);
+        }))
+        setSpecs(epicsWithIds)
+        onGenerated?.(epicsWithIds)
       } else {
-        const errorData = await res.json().catch(() => ({ detail: 'Erreur lors de la génération' }));
-        setError(errorData.detail || 'Erreur lors de la génération');
+        const errorData = await res
+          .json()
+          .catch(() => ({ detail: 'Erreur lors de la génération' }))
+        setError(errorData.detail || 'Erreur lors de la génération')
       }
     } catch (e: unknown) {
-      setError('Une erreur réseau est survenue.');
-      console.error('Network or other error in generate:', e);
+      setError('Une erreur réseau est survenue.')
+      console.error('Network or other error in generate:', e)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSaveSpecifications = async () => {
     if (specs.length === 0) {
-      setSaveError("No specifications to save.");
-      return;
+      setSaveError('No specifications to save.')
+      return
     }
 
-    setIsSaving(true);
-    setSaveError('');
-    setSaveSuccessMessage('');
+    setIsSaving(true)
+    setSaveError('')
+    setSaveSuccessMessage('')
 
     const plainEpics = specs.map((epic) => ({
       title: epic.title,
@@ -106,13 +111,13 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
         description: feature.description,
         user_stories: feature.user_stories.map((s) => s.text),
       })),
-    }));
+    }))
 
     const requestBody = {
       epics: plainEpics,
       requirement_title: `AI Specs for ${projectName || 'Project'}`,
       requirement_description: `Functional specifications generated by AI for project: ${projectName}. Description: ${projectDescription}`,
-    };
+    }
 
     try {
       // The backend endpoint is /api/v1/requirements/projects/{project_id}/import-specifications
@@ -127,33 +132,44 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(requestBody),
-        }
-      );
+        },
+      )
 
       if (res.ok) {
-        const saveData = await res.json();
-        setSaveSuccessMessage(saveData.message || 'Specifications saved successfully!');
+        const saveData = await res.json()
+        setSaveSuccessMessage(
+          saveData.message || 'Specifications saved successfully!',
+        )
         // Optionally, clear the specs from UI or disable save button further
         // setSpecs([]); // Example: clear specs after saving
       } else {
-        const errorData = await res.json().catch(() => ({ detail: 'Erreur lors de la sauvegarde' }));
-        setSaveError(errorData.detail || 'Erreur lors de la sauvegarde des spécifications.');
+        const errorData = await res
+          .json()
+          .catch(() => ({ detail: 'Erreur lors de la sauvegarde' }))
+        setSaveError(
+          errorData.detail ||
+            'Erreur lors de la sauvegarde des spécifications.',
+        )
       }
     } catch (e: unknown) {
-      setSaveError('Une erreur réseau est survenue lors de la sauvegarde.');
-      console.error('Network or other error in save:', e);
+      setSaveError('Une erreur réseau est survenue lors de la sauvegarde.')
+      console.error('Network or other error in save:', e)
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   return (
     <div className="flex flex-col gap-4 p-4 border rounded shadow-md">
       {/* ... (existing JSX for inputs and generate button) ... */}
-      <h3 className="text-lg font-semibold">Generate Functional Specifications (AI)</h3>
+      <h3 className="text-lg font-semibold">
+        Generate Functional Specifications (AI)
+      </h3>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="projectName" className="font-medium">Project Name:</label>
+        <label htmlFor="projectName" className="font-medium">
+          Project Name:
+        </label>
         <input
           id="projectName"
           type="text"
@@ -165,7 +181,9 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="projectDescription" className="font-medium">Project Description:</label>
+        <label htmlFor="projectDescription" className="font-medium">
+          Project Description:
+        </label>
         <textarea
           id="projectDescription"
           value={projectDescription}
@@ -176,7 +194,9 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="projectGoals" className="font-medium">Key Project Goals (comma-separated):</label>
+        <label htmlFor="projectGoals" className="font-medium">
+          Key Project Goals (comma-separated):
+        </label>
         <input
           id="projectGoals"
           type="text"
@@ -189,13 +209,31 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
 
       <button
         onClick={generate}
-        disabled={!token || loading || !projectName.trim() || !projectDescription.trim()}
+        disabled={
+          !token || loading || !projectName.trim() || !projectDescription.trim()
+        }
         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50 flex items-center justify-center"
       >
         {loading && (
-          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
         )}
         Générer les Spécifications
@@ -204,7 +242,9 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
       {specs.length > 0 && (
         <div className="mt-6 pt-4 border-t">
           {/* ... (display of specs using EpicItem) ... */}
-          <h3 className="text-xl font-semibold mb-3 text-gray-800">Generated Specifications:</h3>
+          <h3 className="text-xl font-semibold mb-3 text-gray-800">
+            Generated Specifications:
+          </h3>
           <div className="space-y-4">
             {specs.map((epic) => (
               <EpicItem key={epic.id} epic={epic} />
@@ -218,9 +258,25 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
           >
             {isSaving ? (
               <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Sauvegarde en cours...
               </>
@@ -228,12 +284,14 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
               'Sauvegarder les Spécifications'
             )}
           </button>
-          {saveSuccessMessage && <p className="text-green-600 mt-2">{saveSuccessMessage}</p>}
+          {saveSuccessMessage && (
+            <p className="text-green-600 mt-2">{saveSuccessMessage}</p>
+          )}
           {saveError && <p className="text-red-600 mt-2">{saveError}</p>}
         </div>
       )}
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
-  );
+  )
 }
