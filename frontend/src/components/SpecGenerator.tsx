@@ -1,70 +1,70 @@
-import { useState } from 'react'
-import fetchWithAuth from '../lib/fetchWithAuth'
-import { useAuthStore } from '../store/auth'
-import type { Epic } from '../types/specs' // Adjust path
-import EpicItem from './EpicItem' // Adjust path
+import { useState } from "react";
+import fetchWithAuth from "../lib/fetchWithAuth";
+import { useAuthStore } from "../store/auth";
+import type { Epic } from "../types/specs"; // Adjust path
+import EpicItem from "./EpicItem"; // Adjust path
 
 interface Props {
-  projectId: number
-  onGenerated?: (specs: Epic[]) => void // Updated type
+  projectId: number;
+  onGenerated?: (specs: Epic[]) => void; // Updated type
 }
 
 export default function SpecGenerator({ projectId, onGenerated }: Props) {
-  const token = useAuthStore((s) => s.token)
+  const token = useAuthStore((s) => s.token);
 
   // Existing state
-  const [specs, setSpecs] = useState<Epic[]>([]) // Updated type
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [specs, setSpecs] = useState<Epic[]>([]); // Updated type
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // New state for inputs
-  const [projectName, setProjectName] = useState('')
-  const [projectDescription, setProjectDescription] = useState('')
-  const [projectGoals, setProjectGoals] = useState('') // Comma-separated string
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [projectGoals, setProjectGoals] = useState(""); // Comma-separated string
 
   // New state for save operation
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveError, setSaveError] = useState('')
-  const [saveSuccessMessage, setSaveSuccessMessage] = useState('')
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState("");
 
   const generate = async () => {
     // Ensure that after successful generation, any previous save messages are cleared
-    setSaveSuccessMessage('')
-    setSaveError('')
+    setSaveSuccessMessage("");
+    setSaveError("");
     if (!projectName.trim() || !projectDescription.trim()) {
-      setError('Project name and description are required.')
-      return
+      setError("Project name and description are required.");
+      return;
     }
 
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     const goalsArray = projectGoals
-      .split(',')
+      .split(",")
       .map((goal) => goal.trim())
-      .filter((goal) => goal)
+      .filter((goal) => goal);
 
     const requestBody = {
       project_name: projectName,
       project_description: projectDescription,
       project_goals: goalsArray,
-    }
+    };
 
     try {
       const res = await fetchWithAuth(
         `${import.meta.env.VITE_API_BASE}/projects/${projectId}/generate`, // Path confirmed in backend
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             // Authorization header is handled by fetchWithAuth
           },
           body: JSON.stringify(requestBody),
         },
-      )
+      );
 
       if (res.ok) {
-        const data = await res.json()
+        const data = await res.json();
         const epicsWithIds: Epic[] = (data.epics || []).map((epic) => ({
           ...epic,
           id: crypto.randomUUID(),
@@ -76,32 +76,32 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
               text: story,
             })),
           })),
-        }))
-        setSpecs(epicsWithIds)
-        onGenerated?.(epicsWithIds)
+        }));
+        setSpecs(epicsWithIds);
+        onGenerated?.(epicsWithIds);
       } else {
         const errorData = await res
           .json()
-          .catch(() => ({ detail: 'Erreur lors de la génération' }))
-        setError(errorData.detail || 'Erreur lors de la génération')
+          .catch(() => ({ detail: "Erreur lors de la génération" }));
+        setError(errorData.detail || "Erreur lors de la génération");
       }
     } catch (e: unknown) {
-      setError('Une erreur réseau est survenue.')
-      console.error('Network or other error in generate:', e)
+      setError("Une erreur réseau est survenue.");
+      console.error("Network or other error in generate:", e);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSaveSpecifications = async () => {
     if (specs.length === 0) {
-      setSaveError('No specifications to save.')
-      return
+      setSaveError("No specifications to save.");
+      return;
     }
 
-    setIsSaving(true)
-    setSaveError('')
-    setSaveSuccessMessage('')
+    setIsSaving(true);
+    setSaveError("");
+    setSaveSuccessMessage("");
 
     const plainEpics = specs.map((epic) => ({
       title: epic.title,
@@ -111,53 +111,50 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
         description: feature.description,
         user_stories: feature.user_stories.map((s) => s.text),
       })),
-    }))
+    }));
 
     const requestBody = {
       epics: plainEpics,
-      requirement_title: `AI Specs for ${projectName || 'Project'}`,
+      requirement_title: `AI Specs for ${projectName || "Project"}`,
       requirement_description: `Functional specifications generated by AI for project: ${projectName}. Description: ${projectDescription}`,
-    }
+    };
 
     try {
-      // The backend endpoint is /api/v1/requirements/projects/{project_id}/import-specifications
-      // The requirements_api.py router has a prefix="/requirements"
-      // main.py includes it with prefix="/api/v1"
-      // So the full path is correct.
+      // Endpoint handled by requirements router under /projects
       const res = await fetchWithAuth(
-        `${import.meta.env.VITE_API_BASE}/api/v1/requirements/projects/${projectId}/import-specifications`,
+        `${import.meta.env.VITE_API_BASE}/api/v1/projects/${projectId}/import-specifications`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(requestBody),
         },
-      )
+      );
 
       if (res.ok) {
-        const saveData = await res.json()
+        const saveData = await res.json();
         setSaveSuccessMessage(
-          saveData.message || 'Specifications saved successfully!',
-        )
+          saveData.message || "Specifications saved successfully!",
+        );
         // Optionally, clear the specs from UI or disable save button further
         // setSpecs([]); // Example: clear specs after saving
       } else {
         const errorData = await res
           .json()
-          .catch(() => ({ detail: 'Erreur lors de la sauvegarde' }))
+          .catch(() => ({ detail: "Erreur lors de la sauvegarde" }));
         setSaveError(
           errorData.detail ||
-            'Erreur lors de la sauvegarde des spécifications.',
-        )
+            "Erreur lors de la sauvegarde des spécifications.",
+        );
       }
     } catch (e: unknown) {
-      setSaveError('Une erreur réseau est survenue lors de la sauvegarde.')
-      console.error('Network or other error in save:', e)
+      setSaveError("Une erreur réseau est survenue lors de la sauvegarde.");
+      console.error("Network or other error in save:", e);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col gap-4 p-4 border rounded shadow-md">
@@ -281,7 +278,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
                 Sauvegarde en cours...
               </>
             ) : (
-              'Sauvegarder les Spécifications'
+              "Sauvegarder les Spécifications"
             )}
           </button>
           {saveSuccessMessage && (
@@ -293,5 +290,5 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
-  )
+  );
 }
