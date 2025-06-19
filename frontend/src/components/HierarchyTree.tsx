@@ -8,11 +8,21 @@ import type { SpecNode, SpecLevel } from '@/types/SpecNode'
 
 function getParentId(n: SpecNode): number | null {
   return (
-    n.parent_story_id ?? n.parent_feature_id ?? n.parent_epic_id ?? n.parent_req_id ?? null
+    n.parent_story_id ??
+    n.parent_feature_id ??
+    n.parent_epic_id ??
+    n.parent_req_id ??
+    null
   )
 }
 
-const levelOrder: SpecLevel[] = ['requirement', 'epic', 'feature', 'story', 'usecase']
+const levelOrder: SpecLevel[] = [
+  'requirement',
+  'epic',
+  'feature',
+  'story',
+  'usecase',
+]
 
 function getChildLevel(level: SpecLevel): SpecLevel | null {
   const idx = levelOrder.indexOf(level)
@@ -37,14 +47,14 @@ function buildChildData(parent: SpecNode): Omit<SpecNode, 'id' | 'project_id'> {
       childLevel === 'feature'
         ? parent.id
         : childLevel === 'epic'
-        ? undefined
-        : parent.parent_epic_id,
+          ? undefined
+          : parent.parent_epic_id,
     parent_feature_id:
       childLevel === 'story'
         ? parent.id
         : childLevel === 'usecase'
-        ? parent.parent_feature_id
-        : undefined,
+          ? parent.parent_feature_id
+          : undefined,
     parent_story_id: childLevel === 'usecase' ? parent.id : undefined,
   }
 }
@@ -82,10 +92,10 @@ function TreeItem({ node, editable }: TreeItemProps) {
 
   const handleDrop = (target: SpecNode) => {
     if (dragId.current == null) return
-    const dragged = nodes.find(n => n.id === dragId.current)
+    const dragged = nodes.find((n) => n.id === dragId.current)
     if (!dragged || dragged.id === target.id) return
     const childLevel = dragged.level
-    let updated = { ...dragged }
+    const updated = { ...dragged }
     if (childLevel === 'epic' && target.level === 'requirement') {
       updated.parent_req_id = target.id
     } else if (childLevel === 'feature' && target.level === 'epic') {
@@ -116,11 +126,11 @@ function TreeItem({ node, editable }: TreeItemProps) {
       onDragStart={() => {
         dragId.current = node.id
       }}
-      onDragOver={e => e.preventDefault()}
+      onDragOver={(e) => e.preventDefault()}
       onDrop={() => handleDrop(node)}
     >
       <div
-        role='treeitem'
+        role="treeitem"
         tabIndex={0}
         onClick={() => select(node.id)}
         onKeyDown={onKey}
@@ -141,14 +151,19 @@ function TreeItem({ node, editable }: TreeItemProps) {
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                update(node.project_id, { ...node, title: (e.target as HTMLInputElement).value })
+                update(node.project_id, {
+                  ...node,
+                  title: (e.target as HTMLInputElement).value,
+                })
                 setEditing(false)
               }
             }}
             className="border p-1 text-sm flex-1"
           />
         ) : (
-          <span onDoubleClick={() => editable && setEditing(true)}>{node.title}</span>
+          <span onDoubleClick={() => editable && setEditing(true)}>
+            {node.title}
+          </span>
         )}
         {editable && getChildLevel(node.level) && (
           <button onClick={() => setAddOpen(true)} className="ml-auto text-xs">
@@ -156,7 +171,10 @@ function TreeItem({ node, editable }: TreeItemProps) {
           </button>
         )}
         {editable && (
-          <button onClick={() => setConfirm(true)} className="text-xs text-red-600">
+          <button
+            onClick={() => setConfirm(true)}
+            className="text-xs text-red-600"
+          >
             ✖
           </button>
         )}
@@ -199,14 +217,23 @@ interface TreeProps {
   projectId?: number
 }
 
-export default function HierarchyTree({ editable = false, projectId }: TreeProps) {
+export default function HierarchyTree({
+  editable = false,
+  projectId,
+}: TreeProps) {
   const nodes = useSpecStore((s) => s.nodes)
   const create = useSpecStore((s) => s.create)
   const { id } = useParams<{ id?: string }>()
   const pid = projectId ?? Number(id)
   const [rootOpen, setRootOpen] = useState(false)
 
-  const addRequirement = ({ title, description }: { title: string; description: string }) => {
+  const addRequirement = ({
+    title,
+    description,
+  }: {
+    title: string
+    description: string
+  }) => {
     if (!pid) return
     create(pid, { title, description, level: 'requirement' })
   }
@@ -215,7 +242,12 @@ export default function HierarchyTree({ editable = false, projectId }: TreeProps
     <aside className="w-64 border-r overflow-y-auto p-2 h-full">
       {editable && (
         <div className="flex justify-end pb-2">
-          <button onClick={() => setRootOpen(true)} className="text-xs text-indigo-600">＋ Requirement</button>
+          <button
+            onClick={() => setRootOpen(true)}
+            className="text-xs text-indigo-600"
+          >
+            ＋ Requirement
+          </button>
         </div>
       )}
       {editable && (
@@ -229,7 +261,7 @@ export default function HierarchyTree({ editable = false, projectId }: TreeProps
           }}
         />
       )}
-      <ul role='tree'>
+      <ul role="tree">
         {nodes.map((n) => (
           <TreeItem key={n.id} node={n} editable={editable} />
         ))}
