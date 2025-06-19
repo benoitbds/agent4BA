@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import ConfirmModal from './ConfirmModal'
 import Modal from './Modal'
@@ -73,12 +73,61 @@ function TreeItem({ node, editable }: TreeItemProps) {
   const create = useSpecStore((s) => s.create)
   const update = useSpecStore((s) => s.update)
   const remove = useSpecStore((s) => s.remove)
+  const select = useSpecStore((s) => s.select)
+  const selectedId = useSpecStore((s) => s.selectedId)
 
   const children = nodes.filter((n) => getParentId(n) === node.id)
 
+  const dragId = useRef<number | null>(null)
+
+  const handleDrop = (target: SpecNode) => {
+    if (dragId.current == null) return
+    const dragged = nodes.find(n => n.id === dragId.current)
+    if (!dragged || dragged.id === target.id) return
+    const childLevel = dragged.level
+    let updated = { ...dragged }
+    if (childLevel === 'epic' && target.level === 'requirement') {
+      updated.parent_req_id = target.id
+    } else if (childLevel === 'feature' && target.level === 'epic') {
+      updated.parent_epic_id = target.id
+    } else if (childLevel === 'story' && target.level === 'feature') {
+      updated.parent_feature_id = target.id
+    } else if (childLevel === 'usecase' && target.level === 'story') {
+      updated.parent_story_id = target.id
+    } else {
+      return
+    }
+    update(updated.project_id, updated)
+  }
+
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      select(node.id)
+    } else if (e.key === 'ArrowRight') {
+      if (children.length > 0) setOpen(true)
+    } else if (e.key === 'ArrowLeft') {
+      if (children.length > 0 && open) setOpen(false)
+    }
+  }
+
   return (
-    <li>
-      <div className="flex items-center gap-1 px-2 py-1">
+    <li
+      draggable={editable}
+      onDragStart={() => {
+        dragId.current = node.id
+      }}
+      onDragOver={e => e.preventDefault()}
+      onDrop={() => handleDrop(node)}
+    >
+      <div
+        role='treeitem'
+        tabIndex={0}
+        onClick={() => select(node.id)}
+        onKeyDown={onKey}
+        className={`flex items-center gap-1 px-2 py-1 ${
+          selectedId === node.id ? 'bg-indigo-50' : ''
+        }`}
+      >
         {children.length > 0 && (
           <span onClick={() => setOpen(!open)}>{open ? '▾' : '▸'}</span>
         )}
@@ -180,7 +229,7 @@ export default function HierarchyTree({ editable = false, projectId }: TreeProps
           }}
         />
       )}
-      <ul>
+      <ul role='tree'>
         {nodes.map((n) => (
           <TreeItem key={n.id} node={n} editable={editable} />
         ))}

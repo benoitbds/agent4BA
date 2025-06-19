@@ -7,7 +7,9 @@ interface SpecState {
   nodes: SpecNode[]
   loading: boolean
   error?: string
+  selectedId: number | null
   fetchTree: (projectId: number) => Promise<void>
+  select: (id: number | null) => void
   create: (projectId: number, data: Omit<SpecNode, 'id' | 'project_id'>) => Promise<void>
   update: (projectId: number, node: SpecNode) => Promise<void>
   remove: (projectId: number, node: SpecNode) => Promise<void>
@@ -17,6 +19,7 @@ export const useSpecStore = create<SpecState>((set, get) => ({
   nodes: [],
   loading: false,
   error: undefined,
+  selectedId: null,
 
   async fetchTree(projectId) {
     set({ loading: true, error: undefined })
@@ -24,10 +27,14 @@ export const useSpecStore = create<SpecState>((set, get) => ({
       const res = await apiFetch(`/api/v1/projects/${projectId}/requirements/`)
       if (!res.ok) throw new Error('fetch error')
       const data = (await res.json()) as SpecNode[]
-      set({ nodes: data, loading: false })
+      set({ nodes: data, loading: false, selectedId: null })
     } catch {
       set({ error: 'Failed to load', loading: false })
     }
+  },
+
+  select(id) {
+    set({ selectedId: id })
   },
 
   async create(projectId, data) {
