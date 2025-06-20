@@ -27,8 +27,8 @@ Avec Agent4BA, autonomisez et fluidifiez votre processus d'analyse fonctionnelle
 
 ## Setup
 
-Run the helper script to prepare the Python environment and install frontend
-packages:
+Run the helper script to prepare the Python environment (including backend
+dependencies) and install frontend packages:
 
 ```bash
 bash setup.sh
