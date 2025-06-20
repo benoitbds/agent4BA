@@ -20,6 +20,7 @@ from app.schemas.requirements import (
     UseCaseCreate,
     UseCaseRead,
     UseCaseUpdate,
+    AISpecImportRequest,
 )
 
 router = APIRouter(prefix="/projects/{project_id}", tags=["Requirements"])
