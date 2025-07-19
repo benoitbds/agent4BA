@@ -92,7 +92,7 @@ def update_requirement(
     return req
 
 
-@router.delete("/requirements/{req_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/requirements/{req_id}")
 def delete_requirement(
     *,
     project_id: int,
@@ -105,7 +105,7 @@ def delete_requirement(
         raise HTTPException(status_code=404, detail="Requirement not found")
     db.delete(req)
     db.commit()
-    return None
+    return {"ok": True}
 
 
 # -- Epics --
