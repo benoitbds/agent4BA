@@ -38,16 +38,11 @@ def db_session():
     connection.close()
 
 
-@pytest.fixture(scope="module")
-def client():
-    # Define the dependency override here before TestClient is instantiated
+@pytest.fixture(scope="function")
+def client(db_session: Session):
+    """Create a test client using the same DB session as the tests."""
+
     def override_get_current_user_for_tests():
-        # This user must exist in the DB for some tests, or be transient if not DB dependent.
-        # Let's ensure this user is created by a fixture.
-        # For simplicity, we return a transient User object.
-        # This user would need an ID if used in FK relationships from created objects.
-        # A more robust approach involves creating this user in the DB via a fixture.
-        # For now, a simple mock:
         return User(
             id=1,
             username="testuser",
@@ -56,8 +51,14 @@ def client():
             is_superuser=False,
         )
 
+    def override_get_db():
+        yield db_session
+
     app.dependency_overrides[get_current_user] = override_get_current_user_for_tests
-    return TestClient(app)
+    app.dependency_overrides[get_db] = override_get_db
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(
