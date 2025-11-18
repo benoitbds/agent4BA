@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { FormEvent } from 'react';
 
 import fetchWithAuth from '../lib/fetchWithAuth'; // Assuming this handles auth tokens
+import { useTranslation } from '../i18n';
 
 interface CreatedItem {
   type: string;
@@ -28,6 +29,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
   const [inputMessage, setInputMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   // Optional: Load initial messages or welcome message
   // useEffect(() => {
@@ -67,7 +69,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Network response was not ok' }));
-        throw new Error(errorData.detail || 'Failed to send message');
+        throw new Error(errorData.detail || t('common.error'));
       }
 
       const data = await response.json();
@@ -88,7 +90,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
       }
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      const errorMessage = err instanceof Error ? err.message : t('common.error');
       setError(errorMessage);
       // Optionally add error message to chat display
       // const errorMsgEntry: Message = { id: Date.now().toString() + '-err', text: `Error: ${errorMessage}`, sender: 'ai' };
@@ -100,7 +102,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
 
   return (
     <div className="border rounded-lg p-4 space-y-4 bg-white shadow">
-      <h3 className="text-lg font-semibold text-gray-700">AI Chat Assistant</h3>
+      <h3 className="text-lg font-semibold text-gray-700">{t('chat.title')}</h3>
       <div className="h-80 overflow-y-auto p-3 space-y-3 bg-gray-50 rounded">
         {messages.map((msg) => (
           <div
@@ -117,8 +119,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
               <p>{msg.text}</p>
               {msg.createdItem && (
                 <div className="mt-2 p-2 border-t border-gray-300 text-xs">
-                  <p className="font-semibold">System Action:</p>
-                  <p>Created {msg.createdItem.type}: "{msg.createdItem.data?.title || 'Unknown'}" (ID: {msg.createdItem.data?.id})</p>
+                  <p className="font-semibold">{t('chat.systemAction')}</p>
+                  <p>
+                    {t('chat.systemCreated', {
+                      type: msg.createdItem.type,
+                      title: msg.createdItem.data?.title || t('common.unknown'),
+                      id: msg.createdItem.data?.id ?? '',
+                    })}
+                  </p>
                 </div>
               )}
             </div>
@@ -127,14 +135,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
         {isLoading && (
           <div className="flex justify-start">
             <div className="px-4 py-2 rounded-lg shadow bg-gray-200 text-gray-800 animate-pulse">
-              AI is typing...
+              {t('chat.aiTyping')}
             </div>
           </div>
         )}
          {error && (
           <div className="flex justify-start">
             <div className="px-4 py-2 rounded-lg shadow bg-red-100 text-red-700">
-              <p>Error: {error}</p>
+              <p>{t('chat.errorPrefix', { message: error })}</p>
             </div>
           </div>
         )}
@@ -144,7 +152,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
           type="text"
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
-          placeholder="Ask the AI to help with requirements..."
+          placeholder={t('chat.input.placeholder')}
           className="flex-grow p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
           disabled={isLoading}
         />
@@ -153,7 +161,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ projectId }) => {
           disabled={isLoading}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
         >
-          {isLoading ? 'Sending...' : 'Send'}
+          {isLoading ? t('chat.sending') : t('chat.send')}
         </button>
       </form>
     </div>

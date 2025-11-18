@@ -5,6 +5,7 @@ import Modal from './Modal'
 import NodeForm from './forms/NodeForm'
 import { useSpecStore } from '../store/specSlice'
 import type { SpecNode, SpecLevel } from '@/types/SpecNode'
+import { useTranslation } from '../i18n'
 
 function getParentId(n: SpecNode): number | null {
   return (
@@ -34,13 +35,16 @@ interface TreeItemProps {
   editable: boolean
 }
 
-function buildChildData(parent: SpecNode): Omit<SpecNode, 'id' | 'project_id'> {
+function buildChildData(
+  parent: SpecNode,
+  defaultTitle: string,
+): Omit<SpecNode, 'id' | 'project_id'> {
   const childLevel = getChildLevel(parent.level)
   if (!childLevel) {
     throw new Error('No child level')
   }
   return {
-    title: 'New',
+    title: defaultTitle,
     level: childLevel,
     parent_req_id: childLevel === 'epic' ? parent.id : parent.parent_req_id,
     parent_epic_id:
@@ -85,10 +89,14 @@ function TreeItem({ node, editable }: TreeItemProps) {
   const remove = useSpecStore((s) => s.remove)
   const select = useSpecStore((s) => s.select)
   const selectedId = useSpecStore((s) => s.selectedId)
+  const { t } = useTranslation()
 
   const children = nodes.filter((n) => getParentId(n) === node.id)
 
   const dragId = useRef<number | null>(null)
+
+  const levelLabel = (lvl?: SpecLevel | null) =>
+    lvl ? t(`levels.${lvl}`) : ''
 
   const handleDrop = (target: SpecNode) => {
     if (dragId.current == null) return
@@ -139,7 +147,12 @@ function TreeItem({ node, editable }: TreeItemProps) {
         }`}
       >
         {children.length > 0 && (
-          <span onClick={() => setOpen(!open)}>{open ? '▾' : '▸'}</span>
+          <span
+            onClick={() => setOpen(!open)}
+            title={open ? t('tree.collapse') : t('tree.expand')}
+          >
+            {open ? '▾' : '▸'}
+          </span>
         )}
         {editing ? (
           <input
@@ -194,16 +207,19 @@ function TreeItem({ node, editable }: TreeItemProps) {
             remove(node.project_id, node)
             setConfirm(false)
           }}
-          message="Supprimer ?"
+          message={t('tree.delete')}
         />
       )}
       {editable && getChildLevel(node.level) && (
         <AddModal
           open={addOpen}
-          title={`Ajouter ${getChildLevel(node.level)}`}
+          title={t('tree.addChild', { level: levelLabel(getChildLevel(node.level)) })}
           onCancel={() => setAddOpen(false)}
           onSave={(vals) => {
-            create(node.project_id, { ...buildChildData(node), ...vals })
+            create(node.project_id, {
+              ...buildChildData(node, t('tree.newNodeTitle')),
+              ...vals,
+            })
             setAddOpen(false)
           }}
         />
@@ -226,6 +242,7 @@ export default function HierarchyTree({
   const { id } = useParams<{ id?: string }>()
   const pid = projectId ?? Number(id)
   const [rootOpen, setRootOpen] = useState(false)
+  const { t } = useTranslation()
 
   const addRequirement = ({
     title,
@@ -246,14 +263,14 @@ export default function HierarchyTree({
             onClick={() => setRootOpen(true)}
             className="text-xs text-indigo-600"
           >
-            ＋ Requirement
+            {t('tree.addRequirement')}
           </button>
         </div>
       )}
       {editable && (
         <AddModal
           open={rootOpen}
-          title="Ajouter requirement"
+          title={t('tree.addRequirementTitle')}
           onCancel={() => setRootOpen(false)}
           onSave={(vals) => {
             addRequirement(vals)

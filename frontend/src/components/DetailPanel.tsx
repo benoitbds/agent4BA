@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useSpecStore } from '../store/specSlice'
+import { useTranslation } from '../i18n'
 
 const schema = z.object({
   title: z.string().min(1),
@@ -16,6 +17,7 @@ export default function DetailPanel() {
   const nodes = useSpecStore(s => s.nodes)
   const update = useSpecStore(s => s.update)
   const node = nodes.find(n => n.id === selectedId) || null
+  const { t } = useTranslation()
 
   const { register, reset, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -41,7 +43,7 @@ export default function DetailPanel() {
   }, [watch, node, update])
 
   if (!node) {
-    return <div className='p-4 text-gray-500'>Select an item</div>
+    return <div className='p-4 text-gray-500'>{t('detail.empty')}</div>
   }
 
   return (
@@ -51,13 +53,13 @@ export default function DetailPanel() {
           className={tab === 'general' ? 'font-semibold' : ''}
           onClick={() => setTab('general')}
         >
-          General
+          {t('detail.tab.general')}
         </button>
         <button
           className={tab === 'json' ? 'font-semibold' : ''}
           onClick={() => setTab('json')}
         >
-          JSON
+          {t('detail.tab.json')}
         </button>
       </div>
       {tab === 'general' ? (
@@ -65,12 +67,12 @@ export default function DetailPanel() {
           <input
             {...register('title')}
             className='border p-2 rounded'
-            placeholder='Title'
+            placeholder={t('detail.form.title')}
           />
           <textarea
             {...register('description')}
             className='border p-2 rounded h-32'
-            placeholder='Description'
+            placeholder={t('detail.form.description')}
           />
         </form>
       ) : (
