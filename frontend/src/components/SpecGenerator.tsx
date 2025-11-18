@@ -5,6 +5,18 @@ import type { Epic } from "../types/specs"; // Adjust path
 import EpicItem from "./EpicItem"; // Adjust path
 import { useTranslation } from "../i18n";
 
+interface ApiFeature {
+  title?: string;
+  description?: string;
+  user_stories?: string[];
+}
+
+interface ApiEpic {
+  title?: string;
+  description?: string;
+  features?: ApiFeature[];
+}
+
 interface Props {
   projectId: number;
   onGenerated?: (specs: Epic[]) => void; // Updated type
@@ -67,10 +79,10 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
 
       if (res.ok) {
         const data = await res.json();
-        const epicsWithIds: Epic[] = (data.epics || []).map((epic) => ({
+        const epicsWithIds: Epic[] = (data.epics || []).map((epic: ApiEpic) => ({
           ...epic,
           id: crypto.randomUUID(),
-          features: (epic.features || []).map((feature) => ({
+          features: (epic.features || []).map((feature: ApiFeature) => ({
             ...feature,
             id: crypto.randomUUID(),
             user_stories: (feature.user_stories || []).map((story: string) => ({
