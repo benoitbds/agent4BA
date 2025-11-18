@@ -3,6 +3,19 @@ import fetchWithAuth from "../lib/fetchWithAuth";
 import { useAuthStore } from "../store/auth";
 import type { Epic } from "../types/specs"; // Adjust path
 import EpicItem from "./EpicItem"; // Adjust path
+import { useTranslation } from "../i18n";
+
+interface ApiFeature {
+  title?: string;
+  description?: string;
+  user_stories?: string[];
+}
+
+interface ApiEpic {
+  title?: string;
+  description?: string;
+  features?: ApiFeature[];
+}
 
 interface Props {
   projectId: number;
@@ -11,6 +24,7 @@ interface Props {
 
 export default function SpecGenerator({ projectId, onGenerated }: Props) {
   const token = useAuthStore((s) => s.token);
+  const { t } = useTranslation();
 
   // Existing state
   const [specs, setSpecs] = useState<Epic[]>([]); // Updated type
@@ -32,7 +46,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
     setSaveSuccessMessage("");
     setSaveError("");
     if (!projectName.trim() || !projectDescription.trim()) {
-      setError("Project name and description are required.");
+      setError(t("specGen.validation.missingProject"));
       return;
     }
 
@@ -65,10 +79,10 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
 
       if (res.ok) {
         const data = await res.json();
-        const epicsWithIds: Epic[] = (data.epics || []).map((epic) => ({
+        const epicsWithIds: Epic[] = (data.epics || []).map((epic: ApiEpic) => ({
           ...epic,
           id: crypto.randomUUID(),
-          features: (epic.features || []).map((feature) => ({
+          features: (epic.features || []).map((feature: ApiFeature) => ({
             ...feature,
             id: crypto.randomUUID(),
             user_stories: (feature.user_stories || []).map((story: string) => ({
@@ -86,7 +100,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
         setError(errorData.detail || "Erreur lors de la génération");
       }
     } catch (e: unknown) {
-      setError("Une erreur réseau est survenue.");
+      setError(t("specGen.error.network"));
       console.error("Network or other error in generate:", e);
     } finally {
       setLoading(false);
@@ -95,7 +109,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
 
   const handleSaveSpecifications = async () => {
     if (specs.length === 0) {
-      setSaveError("No specifications to save.");
+      setSaveError(t("specGen.validation.noSpecs"));
       return;
     }
 
@@ -135,7 +149,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
       if (res.ok) {
         const saveData = await res.json();
         setSaveSuccessMessage(
-          saveData.message || "Specifications saved successfully!",
+          saveData.message || t("specGen.success.save"),
         );
         // Optionally, clear the specs from UI or disable save button further
         // setSpecs([]); // Example: clear specs after saving
@@ -144,12 +158,11 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
           .json()
           .catch(() => ({ detail: "Erreur lors de la sauvegarde" }));
         setSaveError(
-          errorData.detail ||
-            "Erreur lors de la sauvegarde des spécifications.",
+          errorData.detail || t("specGen.error.save"),
         );
       }
     } catch (e: unknown) {
-      setSaveError("Une erreur réseau est survenue lors de la sauvegarde.");
+      setSaveError(t("specGen.error.network"));
       console.error("Network or other error in save:", e);
     } finally {
       setIsSaving(false);
@@ -159,13 +172,11 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
   return (
     <div className="flex flex-col gap-4 p-4 border rounded shadow-md">
       {/* ... (existing JSX for inputs and generate button) ... */}
-      <h3 className="text-lg font-semibold">
-        Generate Functional Specifications (AI)
-      </h3>
+      <h3 className="text-lg font-semibold">{t("specGen.title")}</h3>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="projectName" className="font-medium">
-          Project Name:
+          {t("specGen.projectName.label")}
         </label>
         <input
           id="projectName"
@@ -173,26 +184,26 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
           className="border p-2 rounded"
-          placeholder="e.g., My Awesome App"
+          placeholder={t("specGen.projectName.placeholder")}
         />
       </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="projectDescription" className="font-medium">
-          Project Description:
+          {t("specGen.projectDescription.label")}
         </label>
         <textarea
           id="projectDescription"
           value={projectDescription}
           onChange={(e) => setProjectDescription(e.target.value)}
           className="border p-2 rounded h-24"
-          placeholder="Describe the main purpose and features of your project."
+          placeholder={t("specGen.projectDescription.placeholder")}
         />
       </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="projectGoals" className="font-medium">
-          Key Project Goals (comma-separated):
+          {t("specGen.projectGoals.label")}
         </label>
         <input
           id="projectGoals"
@@ -200,7 +211,7 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
           value={projectGoals}
           onChange={(e) => setProjectGoals(e.target.value)}
           className="border p-2 rounded"
-          placeholder="e.g., Increase user engagement, Streamline checkout process"
+          placeholder={t("specGen.projectGoals.placeholder")}
         />
       </div>
 
@@ -233,14 +244,14 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
             ></path>
           </svg>
         )}
-        Générer les Spécifications
+        {t("specGen.generate")}
       </button>
 
       {specs.length > 0 && (
         <div className="mt-6 pt-4 border-t">
           {/* ... (display of specs using EpicItem) ... */}
           <h3 className="text-xl font-semibold mb-3 text-gray-800">
-            Generated Specifications:
+            {t("specGen.generatedTitle")}
           </h3>
           <div className="space-y-4">
             {specs.map((epic) => (
@@ -275,10 +286,10 @@ export default function SpecGenerator({ projectId, onGenerated }: Props) {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Sauvegarde en cours...
+                {t("specGen.saveInProgress")}
               </>
             ) : (
-              "Sauvegarder les Spécifications"
+              t("specGen.save")
             )}
           </button>
           {saveSuccessMessage && (
